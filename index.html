@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>手作活動報名</title>
+  <style>
+    /* ── 木質系 色票 ── */
+    :root {
+      --bg:        #f5f0e8;
+      --card:      #fdf8f0;
+      --border:    #c8a97a;
+      --accent:    #8b5e3c;
+      --accent2:   #a67c52;
+      --text:      #4a3728;
+      --text-light:#7a6050;
+      --input-bg:  #fffdf8;
+      --success-bg:#f0f7ec;
+      --success:   #5a8a4a;
+      --error-bg:  #fdf0ed;
+      --error:     #c0442a;
+      --wood1:     #d4a574;
+      --wood2:     #b8865a;
+      --chip-bg:   #efe6d8;
+      --chip-full: #d4b896;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Microsoft JhengHei', '微軟正黑體', sans-serif;
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(212,165,116,.15) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(184,134,90,.12) 0%, transparent 50%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 32px 16px 48px;
+    }
+
+    /* ── 頁首 ── */
+    .page-header {
+      text-align: center;
+      margin-bottom: 28px;
+      position: relative;
+    }
+    .page-header::before {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 4px;
+      background: linear-gradient(90deg, var(--wood1), var(--wood2));
+      border-radius: 2px;
+      margin: 0 auto 16px;
+    }
+    .icon-wrap {
+      font-size: 48px;
+      margin-bottom: 10px;
+      line-height: 1;
+    }
+    .page-header h1 {
+      font-size: 1.9rem;
+      color: var(--accent);
+      letter-spacing: .08em;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .page-header .subtitle {
+      font-size: .9rem;
+      color: var(--text-light);
+      letter-spacing: .04em;
+    }
+
+    /* ── 梯次卡片 ── */
+    .slots-section {
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 24px;
+    }
+    .section-title {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: 12px;
+    }
+    .slots-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 480px) {
+      .slots-grid { grid-template-columns: 1fr; }
+    }
+
+    .slot-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: border-color .2s, box-shadow .2s, transform .15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .slot-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 4px;
+      background: linear-gradient(90deg, var(--wood1), var(--wood2));
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .slot-card:hover:not(.full) {
+      border-color: var(--accent);
+      box-shadow: 0 4px 18px rgba(139,94,60,.18);
+      transform: translateY(-2px);
+    }
+    .slot-card:hover:not(.full)::before { opacity: 1; }
+    .slot-card.selected {
+      border-color: var(--accent);
+      background: #fdf4eb;
+      box-shadow: 0 4px 20px rgba(139,94,60,.22);
+    }
+    .slot-card.selected::before { opacity: 1; }
+    .slot-card.full {
+      opacity: .6;
+      cursor: not-allowed;
+      background: #f5f0eb;
+    }
+
+    .slot-radio { display: none; }
+    .slot-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .slot-date {
+      font-size: .88rem;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .slot-time {
+      font-size: .82rem;
+      color: var(--text-light);
+      margin-bottom: 10px;
+    }
+    .slot-quota {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .8rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--chip-bg);
+      color: var(--accent2);
+      font-weight: 600;
+    }
+    .slot-quota.full-chip {
+      background: var(--chip-full);
+      color: var(--text);
+    }
+    .quota-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+    .quota-dot.full { background: #c0856a; }
+
+    /* ── 表單卡 ── */
+    .form-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 32px 36px;
+      width: 100%;
+      max-width: 720px;
+      box-shadow: 0 4px 24px rgba(139,94,60,.10);
+    }
+    @media (max-width: 540px) {
+      .form-card { padding: 24px 20px; }
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 540px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+    .field-group:last-child { margin-bottom: 0; }
+
+    label {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--text-light);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    label .req { color: #c0442a; margin-left: 2px; }
+
+    input, select {
+      background: var(--input-bg);
+      border: 1.5px solid #d9c5ad;
+      border-radius: 9px;
+      padding: 11px 14px;
+      font-size: .95rem;
+      color: var(--text);
+      font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+      width: 100%;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(139,94,60,.12);
+    }
+    input::placeholder { color: #c0a888; }
+    select option[value=""] { color: #c0a888; }
+
+    /* ── 提交按鈕 ── */
+    .submit-btn {
+      display: block;
+      width: 100%;
+      margin-top: 28px;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      cursor: pointer;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(139,94,60,.30);
+    }
+    .submit-btn:hover:not(:disabled) {
+      opacity: .9;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(139,94,60,.38);
+    }
+    .submit-btn:active:not(:disabled) { transform: translateY(0); }
+    .submit-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── 訊息 ── */
+    .msg {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-size: .92rem;
+      font-weight: 600;
+      line-height: 1.5;
+    }
+    .msg.success {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1.5px solid #a8d498;
+      display: block;
+    }
+    .msg.error {
+      background: var(--error-bg);
+      color: var(--error);
+      border: 1.5px solid #e8b0a0;
+      display: block;
+    }
+
+    /* ── 頁尾 ── */
+    .page-footer {
+      margin-top: 32px;
+      font-size: .78rem;
+      color: var(--text-light);
+      text-align: center;
+      opacity: .7;
+    }
+    .divider {
+      border: none;
+      border-top: 1.5px solid #e0d2be;
+      margin: 24px 0;
+    }
+    .form-section-title {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--text-light);
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 頁首 -->
+<div class="page-header">
+  <div class="icon-wrap">🪡</div>
+  <h1>手作活動報名</h1>
+  <p class="subtitle">福委會活動 · 每梯次限額 3 人，先報先得</p>
+</div>
+
+<!-- 梯次選擇 -->
+<div class="slots-section">
+  <div class="section-title">選擇梯次</div>
+  <div class="slots-grid" id="slotsGrid">
+    <!-- 動態生成 -->
+  </div>
+</div>
+
+<!-- 表單 -->
+<div class="form-card">
+  <div class="form-section-title">填寫報名資料</div>
+
+  <form id="regForm" novalidate>
+    <div class="form-row">
+      <div class="field-group">
+        <label for="name">姓名 <span class="req">*</span></label>
+        <input type="text" id="name" name="name" placeholder="請輸入姓名" required />
+      </div>
+      <div class="field-group">
+        <label for="empId">員工編號 <span class="req">*</span></label>
+        <input type="text" id="empId" name="empId" placeholder="請輸入員工編號" required />
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="field-group">
+        <label for="division">事業處 <span class="req">*</span></label>
+        <select id="division" name="division" required>
+          <option value="">— 請選擇 —</option>
+          <option value="銀行事業處">銀行事業處</option>
+          <option value="系統整合處">系統整合處</option>
+          <option value="技術研發處">技術研發處</option>
+          <option value="行政管理處">行政管理處</option>
+          <option value="企業事業處">企業事業處</option>
+        </select>
+      </div>
+      <div class="field-group" id="deptGroup">
+        <label for="department">部門 <span class="req">*</span></label>
+        <select id="department" name="department" required>
+          <option value="">— 請先選事業處 —</option>
+        </select>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <button type="submit" class="submit-btn" id="submitBtn" disabled>請先選擇梯次</button>
+    <div class="msg" id="msgBox"></div>
+  </form>
+</div>
+
+<div class="page-footer">如有問題請洽福委會 · 同一員編每人限報一梯次</div>
+
+<script>
+// ================================================================
+// ⚙️  設定區 — 修改梯次日期、Apps Script 網址
+// ================================================================
+
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/請替換為你的部署網址/exec';
+
+const MAX_PER_SLOT = 3;
+
+const SLOTS = [
+  {
+    id:    'slot1',
+    label: '梯次一 8/2（六）10:00–12:00',
+    name:  '梯次一',
+    date:  '8/2（六）',
+    time:  '10:00 – 12:00',
+  },
+  {
+    id:    'slot2',
+    label: '梯次二 8/9（六）10:00–12:00',
+    name:  '梯次二',
+    date:  '8/9（六）',
+    time:  '10:00 – 12:00',
+  },
+];
+
+// 事業處 → 部門對照
+const DEPT_MAP = {
+  '銀行事業處':  ['業務發展部', '數位支付部', '網路事業部', '應用發展部', '海外金融部'],
+  '系統整合處':  ['業務一部', '技術支援部'],
+  '技術研發處':  [],
+  '行政管理處':  [],
+  '企業事業處':  ['電子商務部', '永續發展部', '流通事業部', '保險科技部', '數據加值部', '事業推展部'],
+};
+
+// ================================================================
+// 初始化
+// ================================================================
+
+let selectedSlot = null;
+let quotaCounts  = {};
+
+// 建立梯次卡片
+function renderSlots(counts) {
+  const grid = document.getElementById('slotsGrid');
+  grid.innerHTML = '';
+
+  SLOTS.forEach(slot => {
+    const count = counts[slot.label] ?? 0;
+    const remaining = MAX_PER_SLOT - count;
+    const isFull = remaining <= 0;
+
+    const card = document.createElement('label');
+    card.className = 'slot-card' + (isFull ? ' full' : '');
+    card.setAttribute('for', slot.id);
+
+    card.innerHTML = `
+      <input type="radio" class="slot-radio" id="${slot.id}" name="slot" value="${slot.label}" ${isFull ? 'disabled' : ''}>
+      <div class="slot-name">${slot.name}</div>
+      <div class="slot-date">📅 ${slot.date}</div>
+      <div class="slot-time">🕙 ${slot.time}</div>
+      <div class="slot-quota ${isFull ? 'full-chip' : ''}">
+        <span class="quota-dot ${isFull ? 'full' : ''}"></span>
+        ${isFull ? '已額滿' : `剩餘 ${remaining} 名`}
+      </div>
+    `;
+
+    card.addEventListener('click', () => {
+      if (isFull) return;
+      document.querySelectorAll('.slot-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedSlot = slot.label;
+      updateSubmitBtn();
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// 查詢名額
+async function fetchCounts() {
+  const grid = document.getElementById('slotsGrid');
+  grid.innerHTML = '<div style="color:var(--text-light);font-size:.88rem;padding:12px 0;">查詢名額中…</div>';
+
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=count`, { method: 'GET' });
+    const json = await res.json();
+    if (json.success) {
+      quotaCounts = json.counts;
+      renderSlots(quotaCounts);
+    } else {
+      grid.innerHTML = '<div style="color:var(--error);font-size:.88rem;padding:12px 0;">名額查詢失敗，請重新整理</div>';
+    }
+  } catch {
+    grid.innerHTML = '<div style="color:var(--error);font-size:.88rem;padding:12px 0;">名額查詢失敗，請重新整理</div>';
+  }
+}
+
+// 部門連動
+document.getElementById('division').addEventListener('change', function () {
+  const deptSel   = document.getElementById('department');
+  const deptGroup = document.getElementById('deptGroup');
+  const depts     = DEPT_MAP[this.value] || [];
+
+  if (depts.length === 0) {
+    // 無子部門 → 隱藏欄位、移除必填
+    deptGroup.style.display = 'none';
+    deptSel.required = false;
+    deptSel.value = '';
+  } else {
+    deptGroup.style.display = '';
+    deptSel.required = true;
+    deptSel.innerHTML =
+      '<option value="">— 請選擇部門 —</option>' +
+      depts.map(d => `<option value="${d}">${d}</option>`).join('');
+  }
+});
+
+// 更新送出按鈕
+function updateSubmitBtn() {
+  const btn = document.getElementById('submitBtn');
+  if (!selectedSlot) {
+    btn.disabled = true;
+    btn.textContent = '請先選擇梯次';
+  } else {
+    btn.disabled = false;
+    btn.textContent = '確認報名';
+  }
+}
+
+// 送出
+document.getElementById('regForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+
+  const name       = document.getElementById('name').value.trim();
+  const empId      = document.getElementById('empId').value.trim();
+  const division   = document.getElementById('division').value;
+  const department = document.getElementById('department').value;
+  const msgBox     = document.getElementById('msgBox');
+  const btn        = document.getElementById('submitBtn');
+
+  // 清除舊訊息
+  msgBox.className = 'msg';
+  msgBox.textContent = '';
+
+  // 前端驗證
+  if (!selectedSlot) { showMsg('error', '請選擇報名梯次'); return; }
+  if (!name)          { showMsg('error', '請填寫姓名'); return; }
+  if (!empId)         { showMsg('error', '請填寫員工編號'); return; }
+  if (!division) { showMsg('error', '請選擇事業處'); return; }
+  const hasDepts = (DEPT_MAP[division] || []).length > 0;
+  if (hasDepts && !department) { showMsg('error', '請選擇部門'); return; }
+
+  btn.disabled = true;
+  btn.textContent = '送出中…';
+
+  try {
+    const params = new URLSearchParams({
+      name, empId, division, department, slot: selectedSlot
+    });
+    const res  = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: params });
+    const json = await res.json();
+
+    if (json.success) {
+      showMsg('success', `🎉 報名成功！已完成【${selectedSlot}】報名，期待與你一起手作！`);
+      this.reset();
+      selectedSlot = null;
+      document.getElementById('department').innerHTML = '<option value="">— 請先選事業處 —</option>';
+      updateSubmitBtn();
+      fetchCounts(); // 重新整理名額
+    } else {
+      showMsg('error', json.message || '報名失敗，請再試一次');
+      btn.disabled = false;
+      btn.textContent = '確認報名';
+    }
+  } catch {
+    showMsg('error', '網路錯誤，請稍後再試');
+    btn.disabled = false;
+    btn.textContent = '確認報名';
+  }
+});
+
+function showMsg(type, text) {
+  const box = document.getElementById('msgBox');
+  box.className = 'msg ' + type;
+  box.textContent = text;
+}
+
+// 啟動
+fetchCounts();
+</script>
+</body>
+</html>
