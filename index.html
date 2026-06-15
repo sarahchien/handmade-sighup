@@ -551,8 +551,8 @@ function showMsg(type, text) {
   box.textContent = text;
 }
 
-// 啟動
+// 啟動，並每 60 秒自動重查名額
 fetchCounts();
-</script>
+setInterval(fetchCounts, 60000);</script>
 </body>
 </html>
