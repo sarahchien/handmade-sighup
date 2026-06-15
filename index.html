@@ -7,7 +7,7 @@
   <style>
     /* ── 木質系 色票 ── */
     :root {
-      --bg:        #f5f0e8;
+      --bg:        #f5f0e8;h
       --card:      #fdf8f0;
       --border:    #c8a97a;
       --accent:    #8b5e3c;
@@ -436,7 +436,7 @@ function renderSlots(counts) {
       if (isFull) return;
       document.querySelectorAll('.slot-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      selectedSlot = slot.label;
+      selectedSlot = slot.name;
       updateSubmitBtn();
     });
 
