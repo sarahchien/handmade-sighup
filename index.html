@@ -366,10 +366,11 @@
 
 <script>
 // ================================================================
-// ⚙️  設定區 — 修改梯次日期、Apps Script 網址
+// ⚙️  設定區 — Power Automate 網址
 // ================================================================
 
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyCyafX4Oqb14-le46hVYfGwUHko5eP8UEuJ7IKr0w6l7s0vVsDXqkTgkv_lzFGfLLm/exec';
+const POST_URL = 'https://default71f032078cd347c2bc88ec47bf164d.43.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4e4f1306bfaa41be95b3a2f3304f40d4/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=GgpZ-c1cIfUfOQ5-xdikySFw-DkE-Ku6IDKTLc2lHnU';
+const GET_URL  = 'https://default71f032078cd347c2bc88ec47bf164d.43.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/996f6c1e92ee4ec48485d0a9414e840c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t8p4V9ion384gMRTS-2p6GIzmbnHAkbL9q6smGPdrfY';
 
 const MAX_PER_SLOT = 3;
 
@@ -412,7 +413,7 @@ function renderSlots(counts) {
   grid.innerHTML = '';
 
   SLOTS.forEach(slot => {
-    const count = counts[slot.label] ?? 0;
+    const count = counts[slot.id] ?? 0;
     const remaining = MAX_PER_SLOT - count;
     const isFull = remaining <= 0;
 
@@ -449,14 +450,11 @@ async function fetchCounts() {
   grid.innerHTML = '<div style="color:var(--text-light);font-size:.88rem;padding:12px 0;">查詢名額中…</div>';
 
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=count`, { method: 'GET' });
+    const res = await fetch(GET_URL, { method: 'POST' });
     const json = await res.json();
-    if (json.success) {
-      quotaCounts = json.counts;
-      renderSlots(quotaCounts);
-    } else {
-      grid.innerHTML = '<div style="color:var(--error);font-size:.88rem;padding:12px 0;">名額查詢失敗，請重新整理</div>';
-    }
+    // GET flow 回傳 { slot1: N, slot2: N }
+    quotaCounts = json;
+    renderSlots(quotaCounts);
   } catch {
     grid.innerHTML = '<div style="color:var(--error);font-size:.88rem;padding:12px 0;">名額查詢失敗，請重新整理</div>';
   }
@@ -521,13 +519,14 @@ document.getElementById('regForm').addEventListener('submit', async function (e)
   btn.textContent = '送出中…';
 
   try {
-    const params = new URLSearchParams({
-      name, empId, division, department, slot: selectedSlot
+    const res  = await fetch(POST_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, empId, division, department, slot: selectedSlot }),
     });
-    const res  = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: params });
     const json = await res.json();
 
-    if (json.success) {
+    if (json.status === 'ok') {
       showMsg('success', `🎉 報名成功！已完成【${selectedSlot}】報名，期待與你一起手作！`);
       this.reset();
       selectedSlot = null;
