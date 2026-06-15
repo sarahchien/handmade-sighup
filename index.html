@@ -7,13 +7,13 @@
   <style>
     /* ── 木質系 色票 ── */
     :root {
-      --bg:        #f5f0e8;hh
+      --bg:        #f5f0e8;
       --card:      #fdf8f0;
       --border:    #c8a97a;
       --accent:    #8b5e3c;
       --accent2:   #a67c52;
       --text:      #4a3728;
-      --text-light:#7a6050;h
+      --text-light:#7a6050;
       --input-bg:  #fffdf8;
       --success-bg:#f0f7ec;
       --success:   #5a8a4a;
@@ -445,18 +445,29 @@ function renderSlots(counts) {
 }
 
 // 查詢名額
-async function fetchCounts() {
+async function fetchCounts(isBackground = false) {
   const grid = document.getElementById('slotsGrid');
-  grid.innerHTML = '<div style="color:var(--text-light);font-size:.88rem;padding:12px 0;">查詢名額中…</div>';
+
+  // 背景輪詢時保留舊畫面，只有首次載入才顯示「查詢中」
+  if (!isBackground) {
+    grid.innerHTML = '<div style="color:var(--text-light);font-size:.88rem;padding:12px 0;">查詢名額中…</div>';
+  }
 
   try {
-    const res = await fetch(GET_URL, { method: 'POST' });
+    // 加時間戳避免瀏覽器快取
+    const res = await fetch(GET_URL + '&_t=' + Date.now(), { method: 'POST' });
     const json = await res.json();
-    // GET flow 回傳 { slot1: N, slot2: N }
-    quotaCounts = json;
-    renderSlots(quotaCounts);
+
+    // 只有資料真的有變動才重新渲染，避免畫面跳動
+    if (JSON.stringify(json) !== JSON.stringify(quotaCounts)) {
+      quotaCounts = json;
+      renderSlots(quotaCounts);
+    }
   } catch {
-    grid.innerHTML = '<div style="color:var(--error);font-size:.88rem;padding:12px 0;">名額查詢失敗，請重新整理</div>';
+    // 背景輪詢失敗時靜默略過，不破壞現有畫面
+    if (!isBackground) {
+      grid.innerHTML = '<div style="color:var(--error);font-size:.88rem;padding:12px 0;">名額查詢失敗，請重新整理</div>';
+    }
   }
 }
 
@@ -532,7 +543,7 @@ document.getElementById('regForm').addEventListener('submit', async function (e)
       selectedSlot = null;
       document.getElementById('department').innerHTML = '<option value="">— 請先選事業處 —</option>';
       updateSubmitBtn();
-      fetchCounts(); // 重新整理名額
+      fetchCounts(true); // 靜默重整名額（不顯示 loading）
     } else {
       showMsg('error', json.message || '報名失敗，請再試一次');
       btn.disabled = false;
@@ -551,8 +562,15 @@ function showMsg(type, text) {
   box.textContent = text;
 }
 
-// 啟動，並每 60 秒自動重查名額
-fetchCounts();
-setInterval(fetchCounts, 5000);</script>
+// 首次載入（顯示 loading）
+fetchCounts(false);
+
+// 背景輪詢：每 30 秒靜默更新，畫面不跳動
+setInterval(() => fetchCounts(true), 30000);
+
+// 切回分頁時立刻靜默刷新一次
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') fetchCounts(true);
+});</script>
 </body>
 </html>
