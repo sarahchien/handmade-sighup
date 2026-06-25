@@ -6,10 +6,10 @@
   <title>福委會活動報名</title>
   <style>
     :root {
-      --bg:        #fdf8dc;   /* 鵝黃底色 */
-      --card:      #fffef4;   /* 卡片 — 暖白帶黃 */
-      --border:    #e8dfa8;   /* 邊框 — 偏黃金 */
-      --text:      #3a3020;   /* 深棕文字 */
+      --bg:        #fdf8dc;
+      --card:      #fffef4;
+      --border:    #e8dfa8;
+      --text:      #3a3020;
       --text-light:#9a8860;
       --input-bg:  #fffef8;
       --success:   #3a7040;
@@ -17,17 +17,15 @@
       --error:     #b83030;
       --error-bg:  #fdf0f0;
 
-      /* 三個活動的色系（配鵝黃底） */
-      --c-cal:     #4a7a3a;   /* 己書藝術 — 草綠 */
+      --c-cal:     #4a7a3a;
       --c-cal-bg:  #eef6e8;
-      --c-cake:    #c0604a;   /* DIY蛋糕 — 陶土橘 */
+      --c-cake:    #c0604a;
       --c-cake-bg: #fdf2ee;
-      --c-esc:     #5a4890;   /* 密室逃脫 — 深靛紫 */
+      --c-esc:     #5a4890;
       --c-esc-bg:  #f0edf8;
     }
 
-    html { font-size: 18px; }  /* 基準放大：0.88rem ≈ 16px ≈ 12pt */
-
+    html { font-size: 18px; }
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -40,7 +38,6 @@
       padding: 36px 16px 64px;
     }
 
-    /* ── Header ── */
     .page-header {
       text-align: center;
       margin-bottom: 28px;
@@ -50,14 +47,9 @@
       font-weight: 700;
       color: var(--text);
       margin-bottom: 6px;
-      letter-spacing: -.01em;
     }
-    .page-header p {
-      color: #888;
-      font-size: 0.88rem;
-    }
+    .page-header p { color: #888; font-size: 0.88rem; }
 
-    /* ── Card ── */
     .form-card {
       background: var(--card);
       border-radius: 18px;
@@ -74,7 +66,7 @@
       color: #aaa;
       letter-spacing: .08em;
       text-transform: uppercase;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .divider {
@@ -83,53 +75,26 @@
       margin: 24px 0;
     }
 
-    /* ── Activity cards ── */
-    .activity-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-    }
+    /* ── Activity section ── */
+    .activity-section { margin-bottom: 22px; }
+    .activity-section:last-child { margin-bottom: 0; }
 
-    .activity-card {
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 18px 8px 14px;
-      text-align: center;
-      cursor: pointer;
-      transition: border-color .18s, background .18s, transform .12s;
-      position: relative;
-      user-select: none;
-    }
-    .activity-card:hover { transform: translateY(-1px); }
-    .activity-card input[type=radio] { display: none; }
-
-    .activity-card.selected-cal  { border-color: var(--c-cal);  background: var(--c-cal-bg); }
-    .activity-card.selected-cake { border-color: var(--c-cake); background: var(--c-cake-bg); }
-    .activity-card.selected-esc  { border-color: var(--c-esc);  background: var(--c-esc-bg); }
-
-    .check-badge {
-      display: none;
-      position: absolute;
-      top: 8px; right: 9px;
-      font-size: 0.7rem;
+    .act-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.92rem;
       font-weight: 700;
+      padding-bottom: 9px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid;
     }
-    .activity-card.selected-cal  .check-badge { display: block; color: var(--c-cal); }
-    .activity-card.selected-cake .check-badge { display: block; color: var(--c-cake); }
-    .activity-card.selected-esc  .check-badge { display: block; color: var(--c-esc); }
+    .act-header.cal  { color: var(--c-cal);  border-color: var(--c-cal); }
+    .act-header.cake { color: var(--c-cake); border-color: var(--c-cake); }
+    .act-header.esc  { color: var(--c-esc);  border-color: var(--c-esc); }
+    .act-icon-sm { font-size: 1.1rem; }
 
-    .act-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
-    .act-name {
-      font-size: 0.82rem;
-      font-weight: 600;
-      color: var(--text);
-      line-height: 1.3;
-    }
-
-    /* ── Slot section (hidden until activity chosen) ── */
-    .slots-section { display: none; }
-    .slots-section.visible { display: block; }
-
+    /* ── Slot grid ── */
     .slots-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -139,16 +104,16 @@
     .slot-card {
       border: 2px solid var(--border);
       border-radius: 10px;
-      padding: 14px 14px;
+      padding: 14px;
       cursor: pointer;
       transition: border-color .15s, background .15s;
-      position: relative;
       user-select: none;
     }
-    .slot-card input[type=radio] { display: none; }
-    .slot-card.full  { opacity: .48; cursor: not-allowed; }
-
-    .slot-card.selected { border-color: var(--slot-color); background: var(--slot-bg); }
+    .slot-card.full { opacity: .45; cursor: not-allowed; }
+    .slot-card.selected {
+      border-color: var(--slot-color);
+      background: var(--slot-bg);
+    }
     .slot-card:not(.full):hover { border-color: var(--slot-color); }
 
     .slot-name {
@@ -161,7 +126,6 @@
       font-size: 0.78rem;
       color: #888;
       margin-bottom: 10px;
-      line-height: 1.4;
     }
     .slot-quota {
       display: flex;
@@ -178,10 +142,7 @@
     }
     .quota-dot.full { background: #e07070; }
 
-    /* ── Info section ── */
-    .info-section { display: none; }
-    .info-section.visible { display: block; }
-
+    /* ── Form fields ── */
     .field-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -213,11 +174,8 @@
     }
     input:focus, select:focus, textarea:focus { border-color: #aaa; }
     input::placeholder, textarea::placeholder { color: #bbb; }
-    select option[value=""] { color: #bbb; }
-
     textarea { resize: vertical; min-height: 68px; }
 
-    /* ── Submit ── */
     .submit-btn {
       width: 100%;
       margin-top: 20px;
@@ -236,7 +194,6 @@
     .submit-btn:disabled { opacity: .35; cursor: not-allowed; }
     .submit-btn:not(:disabled):hover { opacity: .8; }
 
-    /* ── Message ── */
     .msg-box {
       display: none;
       margin-top: 14px;
@@ -248,7 +205,6 @@
     .msg-box.success { display: block; background: var(--success-bg); color: var(--success); }
     .msg-box.error   { display: block; background: var(--error-bg);   color: var(--error); }
 
-    /* ── Footer ── */
     .page-footer {
       font-size: 0.78rem;
       color: #aaa;
@@ -256,9 +212,7 @@
       max-width: 640px;
     }
 
-    /* ── RWD ── */
     @media (max-width: 500px) {
-      .activity-grid { grid-template-columns: 1fr; }
       .field-row { grid-template-columns: 1fr; }
     }
     @media (max-width: 380px) {
@@ -275,90 +229,58 @@
 
 <div class="form-card">
 
-  <!-- ① 選擇活動 -->
-  <div class="section-label">① 選擇活動</div>
-  <div class="activity-grid">
-
-    <label class="activity-card" id="card-calligraphy" onclick="selectActivity('calligraphy')">
-      <input type="radio" name="activity" value="calligraphy">
-      <span class="check-badge">✓</span>
-      <span class="act-icon">🖌️</span>
-      <div class="act-name">己書藝術</div>
-    </label>
-
-    <label class="activity-card" id="card-cake" onclick="selectActivity('cake')">
-      <input type="radio" name="activity" value="cake">
-      <span class="check-badge">✓</span>
-      <span class="act-icon">🎂</span>
-      <div class="act-name">DIY 手作蛋糕</div>
-    </label>
-
-    <label class="activity-card" id="card-escape" onclick="selectActivity('escape')">
-      <input type="radio" name="activity" value="escape">
-      <span class="check-badge">✓</span>
-      <span class="act-icon">🔐</span>
-      <div class="act-name">密室逃脫</div>
-    </label>
-
+  <!-- ① 選擇梯次 -->
+  <div class="section-label">① 選擇梯次</div>
+  <div id="allSlotsContainer">
+    <!-- rendered by JS -->
   </div>
 
-  <!-- ② 選擇梯次 -->
-  <div class="slots-section" id="slotsSection">
-    <hr class="divider">
-    <div class="section-label">② 選擇梯次</div>
-    <div class="slots-grid" id="slotsGrid">
-      <!-- rendered by JS -->
-    </div>
-  </div>
+  <hr class="divider">
 
-  <!-- ③ 填寫資料 -->
-  <div class="info-section" id="infoSection">
-    <hr class="divider">
-    <div class="section-label">③ 填寫資料</div>
+  <!-- ② 填寫資料 -->
+  <div class="section-label">② 填寫資料</div>
+  <form id="signupForm" onsubmit="handleSubmit(event)">
 
-    <form id="signupForm" onsubmit="handleSubmit(event)">
-      <div class="field-row">
-        <div class="field-group">
-          <label class="field-label" for="name">姓名 <span class="req">*</span></label>
-          <input type="text" id="name" placeholder="請輸入全名" required>
-        </div>
-        <div class="field-group">
-          <label class="field-label" for="empId">員工編號 <span class="req">*</span></label>
-          <input type="text" id="empId" placeholder="請輸入員工編號" required>
-        </div>
-      </div>
-
-      <div class="field-row" id="divDeptRow">
-        <div class="field-group">
-          <label class="field-label" for="division">事業處 <span class="req">*</span></label>
-          <select id="division" required onchange="updateDept()">
-            <option value="">— 請選擇 —</option>
-            <option>銀行事業處</option>
-            <option>系統整合處</option>
-            <option>技術研發處</option>
-            <option>行政管理處</option>
-            <option>企業事業處</option>
-          </select>
-        </div>
-        <div class="field-group" id="deptGroup">
-          <label class="field-label" for="department">部門 <span class="req">*</span></label>
-          <select id="department" required>
-            <option value="">— 請先選事業處 —</option>
-          </select>
-        </div>
-      </div>
-
+    <div class="field-row">
       <div class="field-group">
-        <label class="field-label" for="note">備註</label>
-        <textarea id="note" placeholder="如有特殊需求請填寫（選填）"></textarea>
+        <label class="field-label" for="name">姓名 <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="請輸入全名" required>
       </div>
+      <div class="field-group">
+        <label class="field-label" for="empId">員工編號 <span class="req">*</span></label>
+        <input type="text" id="empId" placeholder="請輸入員工編號" required>
+      </div>
+    </div>
 
-      <button type="submit" class="submit-btn" id="submitBtn" disabled>請先選擇活動與梯次</button>
-    </form>
+    <div class="field-row" id="divDeptRow">
+      <div class="field-group">
+        <label class="field-label" for="division">事業處 <span class="req">*</span></label>
+        <select id="division" required onchange="updateDept()">
+          <option value="">— 請選擇 —</option>
+          <option>銀行事業處</option>
+          <option>系統整合處</option>
+          <option>技術研發處</option>
+          <option>行政管理處</option>
+          <option>企業事業處</option>
+        </select>
+      </div>
+      <div class="field-group" id="deptGroup">
+        <label class="field-label" for="department">部門 <span class="req">*</span></label>
+        <select id="department" required>
+          <option value="">— 請先選事業處 —</option>
+        </select>
+      </div>
+    </div>
 
-    <div class="msg-box" id="msgBox"></div>
-  </div>
+    <div class="field-group">
+      <label class="field-label" for="note">備註</label>
+      <textarea id="note" placeholder="如有特殊需求請填寫（選填）"></textarea>
+    </div>
 
+    <button type="submit" class="submit-btn" id="submitBtn" disabled>請先選擇梯次</button>
+  </form>
+
+  <div class="msg-box" id="msgBox"></div>
 </div>
 
 <div class="page-footer">
@@ -369,7 +291,7 @@
 
 <script>
 // ================================================================
-// ⚙️  Config — 活動資料（梯次確認後更新這裡）
+// ⚙️  Config
 // ================================================================
 const POST_URL = 'https://default71f032078cd347c2bc88ec47bf164d.43.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/4e4f1306bfaa41be95b3a2f3304f40d4/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=GgpZ-c1cIfUfOQ5-xdikySFw-DkE-Ku6IDKTLc2lHnU';
 const GET_URL  = 'https://default71f032078cd347c2bc88ec47bf164d.43.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/996f6c1e92ee4ec48485d0a9414e840c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=t8p4V9ion384gMRTS-2p6GIzmbnHAkbL9q6smGPdrfY';
@@ -377,34 +299,38 @@ const GET_URL  = 'https://default71f032078cd347c2bc88ec47bf164d.43.environment.a
 const ACTIVITIES = {
   calligraphy: {
     name:       '己書藝術',
-    cssClass:   'selected-cal',
+    icon:       '🖌️',
+    cssClass:   'cal',
     slotColor:  'var(--c-cal)',
     slotBg:     'var(--c-cal-bg)',
     maxPerSlot: 3,
     slots: [
-      { id: 'c1', name: '梯次一', date: '待確認', time: '待確認' },
-      { id: 'c2', name: '梯次二', date: '待確認', time: '待確認' },
+      { id: 'c1', name: '梯次一', date: '7/5',  time: '14:00', weekday: '(日)' },
+      { id: 'c2', name: '梯次二', date: '7/12', time: '14:00', weekday: '(日)' },
     ],
   },
   cake: {
     name:       'DIY手作蛋糕',
-    cssClass:   'selected-cake',
+    icon:       '🎂',
+    cssClass:   'cake',
     slotColor:  'var(--c-cake)',
     slotBg:     'var(--c-cake-bg)',
     maxPerSlot: 4,
     slots: [
-      { id: 'k1', name: '梯次一', date: '待確認', time: '待確認' },
+      { id: 'k1', name: '梯次一', date: '7/19', time: '14:00', weekday: '(日)' },
+      { id: 'k2', name: '梯次二', date: '7/26', time: '14:00', weekday: '(日)' },
     ],
   },
   escape: {
     name:       '密室逃脫',
-    cssClass:   'selected-esc',
+    icon:       '🔐',
+    cssClass:   'esc',
     slotColor:  'var(--c-esc)',
     slotBg:     'var(--c-esc-bg)',
     maxPerSlot: 4,
     slots: [
-      { id: 'e1', name: '梯次一', date: '待確認', time: '待確認' },
-      { id: 'e2', name: '梯次二', date: '待確認', time: '待確認' },
+      { id: 'e1', name: '梯次一', date: '8/1', time: '14:00', weekday: '(六)' },
+      { id: 'e2', name: '梯次二', date: '8/8', time: '14:00', weekday: '(六)' },
     ],
   },
 };
@@ -424,76 +350,49 @@ let selectedActivity = null;
 let selectedSlot     = null;
 let quotaCounts      = {};
 
-// slotLabel = '己書藝術/梯次一' (活動名/梯次名)
-function slotLabel(actKey, slotName) {
-  return `${ACTIVITIES[actKey].name}/${slotName}`;
+// slot label: '梯次一 7/5 14:00 (日)'
+function slotLabel(slot) {
+  return `${slot.name} ${slot.date} ${slot.time} ${slot.weekday}`;
 }
 
 // ================================================================
-// Activity selection
+// Render all activities + slots
 // ================================================================
-function selectActivity(actKey) {
-  // deselect all cards
-  Object.keys(ACTIVITIES).forEach(k => {
-    const card = document.getElementById(`card-${k}`);
-    card.classList.remove('selected-cal', 'selected-cake', 'selected-esc');
-    card.querySelector('input').checked = false;
-  });
-
-  // select this card
-  const card = document.getElementById(`card-${actKey}`);
-  card.querySelector('input').checked = true;
-  card.classList.add(ACTIVITIES[actKey].cssClass);
-
-  selectedActivity = actKey;
-  selectedSlot = null;
-
-  // update slot section colors
-  const sec = document.getElementById('slotsSection');
-  sec.style.setProperty('--slot-color', ACTIVITIES[actKey].slotColor);
-  sec.style.setProperty('--slot-bg',    ACTIVITIES[actKey].slotBg);
-
-  // render + show
-  renderSlots();
-  sec.classList.add('visible');
-  document.getElementById('infoSection').classList.add('visible');
-  updateSubmitBtn();
+function renderAll() {
+  const container = document.getElementById('allSlotsContainer');
+  container.innerHTML = Object.entries(ACTIVITIES).map(([actKey, act]) => `
+    <div class="activity-section">
+      <div class="act-header ${act.cssClass}">
+        <span class="act-icon-sm">${act.icon}</span>${act.name}
+      </div>
+      <div class="slots-grid" style="--slot-color:${act.slotColor};--slot-bg:${act.slotBg};">
+        ${act.slots.map(slot => {
+          const label     = slotLabel(slot);
+          const count     = quotaCounts[label] || 0;
+          const remaining = act.maxPerSlot - count;
+          const isFull    = remaining <= 0;
+          const isChosen  = selectedSlot === label;
+          return `
+            <label class="slot-card${isFull ? ' full' : ''}${isChosen ? ' selected' : ''}"
+                   onclick="${isFull ? '' : `pickSlot(this,'${actKey}','${label}')`}">
+              <div class="slot-name">${slot.name}</div>
+              <div class="slot-datetime">${slot.date} ${slot.time} ${slot.weekday}</div>
+              <div class="slot-quota">
+                <span class="quota-dot${isFull ? ' full' : ''}"></span>
+                ${isFull ? '名額已滿' : `剩餘 ${remaining} 名`}
+              </div>
+            </label>`;
+        }).join('')}
+      </div>
+    </div>`
+  ).join('');
 }
 
-// ================================================================
-// Render slots
-// ================================================================
-function renderSlots() {
-  if (!selectedActivity) return;
-  const act  = ACTIVITIES[selectedActivity];
-  const grid = document.getElementById('slotsGrid');
-
-  grid.innerHTML = act.slots.map(slot => {
-    const label    = slotLabel(selectedActivity, slot.name);
-    const count    = quotaCounts[label] || 0;
-    const remaining = act.maxPerSlot - count;
-    const isFull   = remaining <= 0;
-    const isChosen = selectedSlot === label;
-
-    return `
-      <label class="slot-card ${isFull ? 'full' : ''} ${isChosen ? 'selected' : ''}"
-             data-label="${label}"
-             onclick="${isFull ? '' : `pickSlot(this, '${label}')`}">
-        <input type="radio" name="slot" value="${label}" ${isFull ? 'disabled' : ''}>
-        <div class="slot-name">${slot.name}</div>
-        <div class="slot-datetime">${slot.date}<br>${slot.time}</div>
-        <div class="slot-quota">
-          <span class="quota-dot ${isFull ? 'full' : ''}"></span>
-          ${isFull ? '名額已滿' : `剩餘 ${remaining} 名`}
-        </div>
-      </label>`;
-  }).join('');
-}
-
-function pickSlot(el, label) {
+function pickSlot(el, actKey, label) {
   document.querySelectorAll('.slot-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
-  selectedSlot = label;
+  selectedActivity = actKey;
+  selectedSlot     = label;
   updateSubmitBtn();
 }
 
@@ -502,14 +401,11 @@ function pickSlot(el, label) {
 // ================================================================
 function updateSubmitBtn() {
   const btn = document.getElementById('submitBtn');
-  if (!selectedActivity) {
-    btn.disabled = true;
-    btn.textContent = '請先選擇活動與梯次';
-  } else if (!selectedSlot) {
-    btn.disabled = true;
-    btn.textContent = '請選擇梯次';
+  if (!selectedSlot) {
+    btn.disabled    = true;
+    btn.textContent = '請先選擇梯次';
   } else {
-    btn.disabled = false;
+    btn.disabled    = false;
     btn.textContent = '確認報名';
   }
 }
@@ -522,36 +418,34 @@ function updateDept() {
   const depts = DEPT_MAP[div] || [];
   const dep   = document.getElementById('department');
   const grp   = document.getElementById('deptGroup');
+  const row   = document.getElementById('divDeptRow');
 
-  const row = document.getElementById('divDeptRow');
   if (depts.length) {
     dep.innerHTML = '<option value="">— 請選擇部門 —</option>'
       + depts.map(d => `<option>${d}</option>`).join('');
     dep.required = true;
     grp.style.display = '';
-    row.style.gridTemplateColumns = '';   // 恢復兩欄
+    row.style.gridTemplateColumns = '';
   } else {
     dep.innerHTML = '<option value=""></option>';
     dep.required  = false;
     grp.style.display = 'none';
-    row.style.gridTemplateColumns = '1fr'; // 事業處獨佔一欄
+    row.style.gridTemplateColumns = '1fr';
   }
 }
 
 // ================================================================
 // fetchCounts — silent background polling
 // ================================================================
-async function fetchCounts(isBackground = false) {
+async function fetchCounts() {
   try {
     const res  = await fetch(GET_URL + '&_t=' + Date.now(), { method: 'POST' });
     const json = await res.json();
     if (JSON.stringify(json) !== JSON.stringify(quotaCounts)) {
       quotaCounts = json;
-      if (selectedActivity) renderSlots();
+      renderAll();
     }
-  } catch {
-    // silent fail on background; first-load errors handled in renderSlots placeholder
-  }
+  } catch { /* silent */ }
 }
 
 // ================================================================
@@ -563,8 +457,8 @@ async function handleSubmit(e) {
 
   const btn = document.getElementById('submitBtn');
   const msg = document.getElementById('msgBox');
-  msg.className = 'msg-box';
-  btn.disabled  = true;
+  msg.className   = 'msg-box';
+  btn.disabled    = true;
   btn.textContent = '送出中…';
 
   try {
@@ -586,17 +480,13 @@ async function handleSubmit(e) {
 
     if (data.status === 'ok') {
       msg.className   = 'msg-box success';
-      msg.textContent = `✅ 報名成功！已登記「${ACTIVITIES[selectedActivity].name} — ${selectedSlot.split('/')[1]}」`;
+      msg.textContent = `✅ 報名成功！已登記「${ACTIVITIES[selectedActivity].name} — ${selectedSlot}」`;
       e.target.reset();
-      // reset UI
       selectedActivity = null;
       selectedSlot     = null;
-      Object.keys(ACTIVITIES).forEach(k =>
-        document.getElementById(`card-${k}`).classList.remove('selected-cal','selected-cake','selected-esc')
-      );
-      document.getElementById('slotsSection').classList.remove('visible');
-      document.getElementById('infoSection').classList.remove('visible');
-      fetchCounts(true);
+      renderAll();
+      updateSubmitBtn();
+      fetchCounts();
     } else if (data.status === 'duplicate') {
       msg.className   = 'msg-box error';
       msg.textContent = '⚠️ 您已報名過活動，每人限報一次。';
@@ -616,10 +506,11 @@ async function handleSubmit(e) {
 // ================================================================
 // Init
 // ================================================================
-fetchCounts(false);
-setInterval(() => fetchCounts(true), 30000);
+renderAll();
+fetchCounts();
+setInterval(fetchCounts, 30000);
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') fetchCounts(true);
+  if (document.visibilityState === 'visible') fetchCounts();
 });
 </script>
 
