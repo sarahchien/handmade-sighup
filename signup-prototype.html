@@ -462,11 +462,23 @@ async function handleSubmit(e) {
   btn.textContent = '送出中…';
 
   try {
+    // 送出前重新確認最新名額，避免搶報競爭
+    await fetchCounts();
+    const act = ACTIVITIES[selectedActivity];
+    const count = quotaCounts[selectedSlot] || 0;
+    if (count >= act.maxPerSlot) {
+      msg.className   = 'msg-box error';
+      msg.textContent = '⚠️ 此梯次名額已滿，請選擇其他梯次。';
+      btn.disabled    = false;
+      btn.textContent = '確認報名';
+      return;
+    }
+
     const res = await fetch(POST_URL, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        activity:   ACTIVITIES[selectedActivity].name,
+        activity:   act.name,
         slot:       selectedSlot,
         name:       document.getElementById('name').value.trim(),
         empId:      document.getElementById('empId').value.trim(),
@@ -480,7 +492,7 @@ async function handleSubmit(e) {
 
     if (data.status === 'ok') {
       msg.className   = 'msg-box success';
-      msg.textContent = `✅ 報名成功！已登記「${ACTIVITIES[selectedActivity].name} — ${selectedSlot}」`;
+      msg.textContent = `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`;
       e.target.reset();
       selectedActivity = null;
       selectedSlot     = null;
@@ -492,12 +504,17 @@ async function handleSubmit(e) {
       msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
       btn.disabled    = false;
       btn.textContent = '確認報名';
+    } else if (data.status === 'full') {
+      msg.className   = 'msg-box error';
+      msg.textContent = '⚠️ 此梯次名額已滿，請選擇其他梯次。';
+      btn.disabled    = false;
+      btn.textContent = '確認報名';
     } else {
       throw new Error();
     }
   } catch {
     msg.className   = 'msg-box error';
-    msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
+    msg.textContent = '⚠️ 送出失敗，請稍後再試。';
     btn.disabled    = false;
     btn.textContent = '確認報名';
   }
