@@ -285,7 +285,7 @@
 
 <div class="page-footer">
   <p style="margin-bottom:6px;">注意事項</p>
-  <p>· 額滿梯次將顯示「額滿」並關閉選擇</p>
+  <p>· 額滿梯次將顯示「已額滿」並關閉選擇</p>
   <p>· 如需取消或更改梯次，請聯繫福委群</p>
 </div>
 
@@ -379,7 +379,7 @@ function renderAll() {
               <div class="slot-datetime">${slot.date} ${slot.time} ${slot.weekday}</div>
               <div class="slot-quota">
                 <span class="quota-dot${isFull ? ' full' : ''}"></span>
-                ${isFull ? '名額已滿' : `剩餘 ${remaining} 名`}
+                ${isFull ? '已額滿' : `剩餘 ${remaining} 名`}
               </div>
             </label>`;
         }).join('')}
