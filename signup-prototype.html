@@ -491,6 +491,8 @@ async function handleSubmit(e) {
     const data = await res.json();
 
     if (data.status === 'ok') {
+      // 樂觀更新：立刻在本地加 1，不等 Excel 同步，避免搶報時名額判斷錯誤
+      quotaCounts[selectedSlot] = (quotaCounts[selectedSlot] || 0) + 1;
       msg.className   = 'msg-box success';
       msg.textContent = `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`;
       e.target.reset();
