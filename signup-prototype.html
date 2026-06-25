@@ -489,7 +489,7 @@ async function handleSubmit(e) {
       fetchCounts();
     } else if (data.status === 'duplicate') {
       msg.className   = 'msg-box error';
-      msg.textContent = '⚠️ 您已報名過活動，每人限報一次。';
+      msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
       btn.disabled    = false;
       btn.textContent = '確認報名';
     } else {
@@ -497,7 +497,7 @@ async function handleSubmit(e) {
     }
   } catch {
     msg.className   = 'msg-box error';
-    msg.textContent = '送出失敗，請稍後再試。';
+    msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
     btn.disabled    = false;
     btn.textContent = '確認報名';
   }
