@@ -488,7 +488,8 @@ async function handleSubmit(e) {
       }),
     });
 
-    const data = await res.json();
+    let data = {};
+    try { data = await res.json(); } catch { /* 回應非 JSON，維持空物件 */ }
 
     if (data.status === 'ok') {
       // 樂觀更新：立刻在本地加 1，不等 Excel 同步，避免搶報時名額判斷錯誤
@@ -501,20 +502,20 @@ async function handleSubmit(e) {
       renderAll();
       updateSubmitBtn();
       fetchCounts();
-    } else if (data.status === 'duplicate') {
-      msg.className   = 'msg-box error';
-      msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
-      btn.disabled    = false;
-      btn.textContent = '確認報名';
     } else if (data.status === 'full') {
       msg.className   = 'msg-box error';
       msg.textContent = '⚠️ 此梯次名額已滿，請選擇其他梯次。';
       btn.disabled    = false;
       btn.textContent = '確認報名';
     } else {
-      throw new Error();
+      // duplicate 或任何非預期回應，一律視為員工編號重複
+      msg.className   = 'msg-box error';
+      msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
+      btn.disabled    = false;
+      btn.textContent = '確認報名';
     }
   } catch {
+    // 真正的網路錯誤（fetch 本身失敗）
     msg.className   = 'msg-box error';
     msg.textContent = '⚠️ 送出失敗，請稍後再試。';
     btn.disabled    = false;
