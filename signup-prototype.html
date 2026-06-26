@@ -142,6 +142,29 @@
     }
     .quota-dot.full { background: #c07070; }
 
+    /* ── Companion toggle ── */
+    .companion-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.73rem;
+      color: var(--text-light);
+      margin-top: 9px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .companion-label input[type=checkbox] {
+      width: 14px; height: 14px;
+      accent-color: var(--slot-color, var(--text));
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .companion-label.cp-disabled {
+      opacity: .4;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
     /* ── Form fields ── */
     .field-row {
       display: grid;
@@ -389,9 +412,10 @@ const DEPT_MAP = {
 // ================================================================
 // State
 // ================================================================
-let selectedActivity = null;
-let selectedSlot     = null;
-let quotaCounts      = {};
+let selectedActivity  = null;
+let selectedSlot      = null;
+let selectedCompanion = false;
+let quotaCounts       = {};
 
 // slot label: '梯次一 7/5 14:00 (日)'
 function slotLabel(slot) {
@@ -411,32 +435,50 @@ function renderAll() {
       </div>
       <div class="slots-grid" style="--slot-color:${act.slotColor};--slot-bg:${act.slotBg};">
         ${act.slots.map(slot => {
-          const label     = slotLabel(slot);
-          const count     = quotaCounts[label] || 0;
-          const remaining = act.maxPerSlot - count;
-          const isFull    = remaining <= 0;
-          const isChosen  = selectedSlot === label;
+          const label            = slotLabel(slot);
+          const count            = quotaCounts[label] || 0;
+          const remaining        = act.maxPerSlot - count;
+          const isFull           = remaining <= 0;
+          const isChosen         = selectedSlot === label;
+          const companionChecked = isChosen && selectedCompanion;
+          const companionOk      = !isFull && remaining >= 2; // 需至少 2 個名額
           return `
-            <label class="slot-card${isFull ? ' full' : ''}${isChosen ? ' selected' : ''}"
-                   onclick="${isFull ? '' : `pickSlot(this,'${actKey}','${label}')`}">
+            <div class="slot-card${isFull ? ' full' : ''}${isChosen ? ' selected' : ''}"
+                 onclick="${isFull ? '' : `pickSlot('${actKey}','${label}')`}">
               <div class="slot-name">${slot.name}</div>
               <div class="slot-datetime">${slot.date} ${slot.time} ${slot.weekday}</div>
               <div class="slot-quota">
                 <span class="quota-dot${isFull ? ' full' : ''}"></span>
                 ${isFull ? '已額滿' : `剩餘 ${remaining} 名`}
               </div>
-            </label>`;
+              ${!isFull ? `<label class="companion-label${companionOk ? '' : ' cp-disabled'}"
+                  onclick="event.stopPropagation()">
+                <input type="checkbox"
+                  ${companionChecked ? 'checked' : ''}
+                  ${companionOk ? '' : 'disabled'}
+                  onchange="onCompanionChange('${actKey}','${label}',this.checked)">
+                攜伴 +1${!companionOk ? '（名額不足）' : ''}
+              </label>` : ''}
+            </div>`;
         }).join('')}
       </div>
     </div>`
   ).join('');
 }
 
-function pickSlot(el, actKey, label) {
-  document.querySelectorAll('.slot-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
+function pickSlot(actKey, label) {
+  if (selectedSlot !== label) selectedCompanion = false; // 換梯次時重置攜伴
   selectedActivity = actKey;
   selectedSlot     = label;
+  renderAll();
+  updateSubmitBtn();
+}
+
+function onCompanionChange(actKey, label, checked) {
+  selectedActivity  = actKey;
+  selectedSlot      = label;
+  selectedCompanion = checked;
+  renderAll();
   updateSubmitBtn();
 }
 
@@ -508,11 +550,14 @@ async function handleSubmit(e) {
   try {
     // 送出前重新確認最新名額，避免搶報競爭
     await fetchCounts();
-    const act = ACTIVITIES[selectedActivity];
-    const count = quotaCounts[selectedSlot] || 0;
-    if (count >= act.maxPerSlot) {
+    const act         = ACTIVITIES[selectedActivity];
+    const count       = quotaCounts[selectedSlot] || 0;
+    const seatsNeeded = selectedCompanion ? 2 : 1;
+    if (count + seatsNeeded > act.maxPerSlot) {
       msg.className   = 'msg-box error';
-      msg.textContent = '⚠️ 此梯次名額已滿，請選擇其他梯次。';
+      msg.textContent = (selectedCompanion && act.maxPerSlot - count === 1)
+        ? '⚠️ 此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
+        : '⚠️ 此梯次名額已滿，請選擇其他梯次。';
       btn.disabled    = false;
       btn.textContent = '確認報名';
       return;
@@ -525,6 +570,7 @@ async function handleSubmit(e) {
         activity:   act.name,
         slot:       selectedSlot,
         maxPerSlot: act.maxPerSlot,
+        companion:  selectedCompanion,
         name:       document.getElementById('name').value.trim(),
         empId:      document.getElementById('empId').value.trim(),
         division:   document.getElementById('division').value,
@@ -548,10 +594,13 @@ async function handleSubmit(e) {
       renderAll();
       updateSubmitBtn();
     } else if (data.status === 'full') {
-      quotaCounts[selectedSlot] = act.maxPerSlot; // 本地立刻標滿，避免再選
+      await fetchCounts(); // 重抓最新名額（攜伴時可能只是名額不足，未必真的全滿）
       renderAll();
+      const freshRemaining = act.maxPerSlot - (quotaCounts[selectedSlot] || 0);
       msg.className   = 'msg-box error';
-      msg.textContent = '⚠️ 此梯次名額已滿，請選擇其他梯次。';
+      msg.textContent = (selectedCompanion && freshRemaining === 1)
+        ? '⚠️ 此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
+        : '⚠️ 此梯次名額已滿，請選擇其他梯次。';
       btn.disabled    = false;
       btn.textContent = '確認報名';
     } else if (data.status === 'duplicate') {
