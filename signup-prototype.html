@@ -524,6 +524,7 @@ async function handleSubmit(e) {
       body: JSON.stringify({
         activity:   act.name,
         slot:       selectedSlot,
+        maxPerSlot: act.maxPerSlot,
         name:       document.getElementById('name').value.trim(),
         empId:      document.getElementById('empId').value.trim(),
         division:   document.getElementById('division').value,
@@ -547,21 +548,28 @@ async function handleSubmit(e) {
       renderAll();
       updateSubmitBtn();
     } else if (data.status === 'full') {
+      quotaCounts[selectedSlot] = act.maxPerSlot; // 本地立刻標滿，避免再選
+      renderAll();
       msg.className   = 'msg-box error';
       msg.textContent = '⚠️ 此梯次名額已滿，請選擇其他梯次。';
       btn.disabled    = false;
       btn.textContent = '確認報名';
-    } else {
-      // duplicate 或任何非預期回應，一律視為員工編號重複
+    } else if (data.status === 'duplicate') {
       msg.className   = 'msg-box error';
       msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
       btn.disabled    = false;
       btn.textContent = '確認報名';
+    } else {
+      // 非預期回應
+      msg.className   = 'msg-box error';
+      msg.textContent = '⚠️ 提交失敗，請稍後再試或聯絡福委群。';
+      btn.disabled    = false;
+      btn.textContent = '確認報名';
     }
   } catch {
-    // Power Automate 回傳非 200 時 fetch 會 throw（CORS），預設視為員工編號重複
+    // 網路錯誤或 Power Automate 回傳非 JSON
     msg.className   = 'msg-box error';
-    msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
+    msg.textContent = '⚠️ 提交失敗，請稍後再試或聯絡福委群。';
     btn.disabled    = false;
     btn.textContent = '確認報名';
   }
