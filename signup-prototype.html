@@ -214,9 +214,10 @@
 
     /* ── Activity location ── */
     .act-location {
-      font-size: 0.78rem;
-      color: #907258;
-      margin: 4px 0 10px;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: #5a3c28;
+      margin-left: auto;
     }
 
     /* ── Notice box ── */
@@ -309,7 +310,7 @@
     </div>
 
     <div class="notice-box">
-      <div class="notice-title">📋 注意事項</div>
+      <div class="notice-title">❗ 注意事項</div>
       <ul>
         <li>額滿梯次將顯示「已額滿」並關閉選擇。</li>
         <li>有興趣自費報名其他項目同仁，請於第二次登記時在員工編號末尾加上小寫英文字母「a」（例：11003001a），費用細節將由福委另行通知。</li>
@@ -335,7 +336,7 @@ const GET_URL  = 'https://default71f032078cd347c2bc88ec47bf164d.43.environment.a
 const ACTIVITIES = {
   calligraphy: {
     name:       '己書藝術',
-    icon:       '🖌️',
+    icon:       '🖌️🎨',
     cssClass:   'cal',
     slotColor:  'var(--c-cal)',
     slotBg:     'var(--c-cal-bg)',
@@ -361,7 +362,7 @@ const ACTIVITIES = {
   },
   escape: {
     name:       '密室逃脫',
-    icon:       '🔐',
+    icon:       '🕵️🔐',
     cssClass:   'esc',
     slotColor:  'var(--c-esc)',
     slotBg:     'var(--c-esc-bg)',
@@ -403,8 +404,8 @@ function renderAll() {
     <div class="activity-section">
       <div class="act-header ${act.cssClass}">
         <span class="act-icon-sm">${act.icon}</span>${act.name}
+        <span class="act-location">📍 ${act.location}</span>
       </div>
-      <div class="act-location">📍 活動地點：${act.location}</div>
       <div class="slots-grid" style="--slot-color:${act.slotColor};--slot-bg:${act.slotBg};">
         ${act.slots.map(slot => {
           const label     = slotLabel(slot);
