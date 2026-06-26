@@ -369,8 +369,11 @@ const ACTIVITIES = {
     location:   '近捷運南京三民站，步行約 6 分鐘',
     maxPerSlot: 4,
     slots: [
-      { id: 'e1', name: '梯次一', date: '8/1', time: '14:00', weekday: '(六)' },
-      { id: 'e2', name: '梯次二', date: '8/8', time: '14:00', weekday: '(六)' },
+      { id: 'e1', name: '梯次一', date: '8/1',  time: '14:00', weekday: '(六)' },
+      { id: 'e2', name: '梯次二', date: '8/8',  time: '14:00', weekday: '(六)' },
+      { id: 'e3', name: '梯次三', date: '8/15', time: '14:00', weekday: '(六)' },
+      { id: 'e4', name: '梯次四', date: '8/22', time: '14:00', weekday: '(六)' },
+      { id: 'e5', name: '梯次五', date: '8/29', time: '14:00', weekday: '(六)' },
     ],
   },
 };
@@ -534,6 +537,7 @@ async function handleSubmit(e) {
 
     if (data.status === 'ok') {
       // 樂觀更新：立刻在本地加 1，不等 Excel 同步，避免搶報時名額判斷錯誤
+      // 注意：不立刻呼叫 fetchCounts()，避免 Excel 尚未同步時舊數字蓋掉樂觀更新
       quotaCounts[selectedSlot] = (quotaCounts[selectedSlot] || 0) + 1;
       msg.className   = 'msg-box success';
       msg.textContent = `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`;
@@ -542,7 +546,6 @@ async function handleSubmit(e) {
       selectedSlot     = null;
       renderAll();
       updateSubmitBtn();
-      fetchCounts();
     } else if (data.status === 'full') {
       msg.className   = 'msg-box error';
       msg.textContent = '⚠️ 此梯次名額已滿，請選擇其他梯次。';
