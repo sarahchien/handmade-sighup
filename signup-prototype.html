@@ -6,23 +6,23 @@
   <title>福委會活動報名</title>
   <style>
     :root {
-      --bg:        #fdf8dc;
-      --card:      #fffef4;
-      --border:    #e8dfa8;
-      --text:      #3a3020;
-      --text-light:#9a8860;
-      --input-bg:  #fffef8;
-      --success:   #3a7040;
-      --success-bg:#eef6e8;
-      --error:     #b83030;
-      --error-bg:  #fdf0f0;
+      --bg:        #ede5d8;
+      --card:      #f8f1e6;
+      --border:    #cdb890;
+      --text:      #5a3c28;
+      --text-light:#9a7860;
+      --input-bg:  #fdf8f0;
+      --success:   #4a7040;
+      --success-bg:#eaf2e2;
+      --error:     #b03030;
+      --error-bg:  #fdf0ee;
 
-      --c-cal:     #4a7a3a;
-      --c-cal-bg:  #eef6e8;
-      --c-cake:    #c0604a;
-      --c-cake-bg: #fdf2ee;
-      --c-esc:     #5a4890;
-      --c-esc-bg:  #f0edf8;
+      --c-cal:     #6b8050;
+      --c-cal-bg:  #ecf0e4;
+      --c-cake:    #b06048;
+      --c-cake-bg: #f5ece6;
+      --c-esc:     #7060a0;
+      --c-esc-bg:  #eeeaf4;
     }
 
     html { font-size: 18px; }
@@ -63,7 +63,7 @@
     .section-label {
       font-size: 0.75rem;
       font-weight: 700;
-      color: #aaa;
+      color: #b09878;
       letter-spacing: .08em;
       text-transform: uppercase;
       margin-bottom: 16px;
@@ -124,7 +124,7 @@
     }
     .slot-datetime {
       font-size: 0.78rem;
-      color: #888;
+      color: #a08868;
       margin-bottom: 10px;
     }
     .slot-quota {
@@ -132,15 +132,15 @@
       align-items: center;
       gap: 5px;
       font-size: 0.75rem;
-      color: #666;
+      color: #907058;
     }
     .quota-dot {
       width: 7px; height: 7px;
       border-radius: 50%;
-      background: #55b872;
+      background: #78a870;
       flex-shrink: 0;
     }
-    .quota-dot.full { background: #e07070; }
+    .quota-dot.full { background: #c07070; }
 
     /* ── Form fields ── */
     .field-row {
@@ -212,6 +212,37 @@
       max-width: 640px;
     }
 
+    /* ── Activity location ── */
+    .act-location {
+      font-size: 0.78rem;
+      color: #907258;
+      margin: 4px 0 10px;
+    }
+
+    /* ── Notice box ── */
+    .notice-box {
+      background: #f5ede0;
+      border: 1px solid #cdb890;
+      border-left: 4px solid #a87850;
+      border-radius: 8px;
+      padding: 13px 16px;
+      margin: 14px 0 18px;
+      font-size: 0.82rem;
+      line-height: 1.65;
+      color: #6a4830;
+    }
+    .notice-title {
+      font-weight: 700;
+      color: #7a5030;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+    }
+    .notice-box ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .notice-box li + li { margin-top: 6px; }
+
     @media (max-width: 500px) {
       .field-row { grid-template-columns: 1fr; }
     }
@@ -224,7 +255,7 @@
 
 <div class="page-header">
   <h1>福委會活動報名</h1>
-  <p>每人限報一個活動一個梯次 · 先報先得</p>
+  <p>單次限報一個活動一個梯次 · 先報先得</p>
 </div>
 
 <div class="form-card">
@@ -277,17 +308,22 @@
       <textarea id="note" placeholder="如有特殊需求請填寫（選填）"></textarea>
     </div>
 
+    <div class="notice-box">
+      <div class="notice-title">📋 注意事項</div>
+      <ul>
+        <li>額滿梯次將顯示「已額滿」並關閉選擇。</li>
+        <li>有興趣自費報名其他項目同仁，請於第二次登記時在員工編號末尾加上小寫英文字母「a」（例：11003001a），費用細節將由福委另行通知。</li>
+        <li>若欲報名的梯次已額滿，請聯絡任一福委登記候補，視情況協調或加開梯次。</li>
+        <li>若需取消或更改梯次，請聯繫福委群。</li>
+      </ul>
+    </div>
+
     <button type="submit" class="submit-btn" id="submitBtn" disabled>請先選擇梯次</button>
   </form>
 
   <div class="msg-box" id="msgBox"></div>
 </div>
 
-<div class="page-footer">
-  <p style="margin-bottom:6px;">注意事項</p>
-  <p>· 額滿梯次將顯示「已額滿」並關閉選擇</p>
-  <p>· 如需取消或更改梯次，請聯繫福委群</p>
-</div>
 
 <script>
 // ================================================================
@@ -303,6 +339,7 @@ const ACTIVITIES = {
     cssClass:   'cal',
     slotColor:  'var(--c-cal)',
     slotBg:     'var(--c-cal-bg)',
+    location:   '公司內部會議室 (801)',
     maxPerSlot: 3,
     slots: [
       { id: 'c1', name: '梯次一', date: '7/5',  time: '14:00', weekday: '(日)' },
@@ -315,6 +352,7 @@ const ACTIVITIES = {
     cssClass:   'cake',
     slotColor:  'var(--c-cake)',
     slotBg:     'var(--c-cake-bg)',
+    location:   '士林店或南京店，近捷運劍潭站／南京三民站，步行約 5－8 分鐘',
     maxPerSlot: 4,
     slots: [
       { id: 'k1', name: '梯次一', date: '7/19', time: '14:00', weekday: '(日)' },
@@ -327,6 +365,7 @@ const ACTIVITIES = {
     cssClass:   'esc',
     slotColor:  'var(--c-esc)',
     slotBg:     'var(--c-esc-bg)',
+    location:   '近捷運南京三民站，步行約 6 分鐘',
     maxPerSlot: 4,
     slots: [
       { id: 'e1', name: '梯次一', date: '8/1', time: '14:00', weekday: '(六)' },
@@ -365,6 +404,7 @@ function renderAll() {
       <div class="act-header ${act.cssClass}">
         <span class="act-icon-sm">${act.icon}</span>${act.name}
       </div>
+      <div class="act-location">📍 活動地點：${act.location}</div>
       <div class="slots-grid" style="--slot-color:${act.slotColor};--slot-bg:${act.slotBg};">
         ${act.slots.map(slot => {
           const label     = slotLabel(slot);
@@ -515,9 +555,9 @@ async function handleSubmit(e) {
       btn.textContent = '確認報名';
     }
   } catch {
-    // 真正的網路錯誤（fetch 本身失敗）
+    // Power Automate 回傳非 200 時 fetch 會 throw（CORS），預設視為員工編號重複
     msg.className   = 'msg-box error';
-    msg.textContent = '⚠️ 送出失敗，請稍後再試。';
+    msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
     btn.disabled    = false;
     btn.textContent = '確認報名';
   }
