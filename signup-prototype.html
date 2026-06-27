@@ -149,7 +149,9 @@
       gap: 5px;
       font-size: 0.73rem;
       color: var(--text-light);
-      margin-top: 9px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(0,0,0,0.18);
       cursor: pointer;
       user-select: none;
     }
@@ -353,7 +355,7 @@
       <div class="notice-title">❗ 注意事項</div>
       <ul>
         <li>額滿梯次將顯示「已額滿」並關閉選擇。</li>
-        <li>有興趣自費報名其他項目的同仁，第二次以上登記請在員工編號末尾依序加上小寫英文字母第二次加「a」、第三次加「aa」，以此類推，(例：11003001a、11003001aa)，費用細節將由福委另行通知。</li>
+        <li>有興趣自費報名其他項目的同仁，第二次以上登記請在員工編號末尾加上小寫英文字母第二次加「a」、第三次加「aa」，以此類推，(例：11003001a、11003001aa)，費用細節將由福委另行通知。</li>
         <li>若欲報名的梯次已額滿，請聯絡任一福委登記候補，人數盡量協調或加開梯次。</li>
         <li>若需取消或更改梯次，請聯繫福委群。</li>
       </ul>
@@ -361,7 +363,7 @@
 
     <label class="ack-label">
       <input type="checkbox" id="ackCheck" onchange="updateSubmitBtn()">
-      <span>我已知悉，若報名第二個項目及攜伴會有費用收取。 <span style="color:#c03030;">*</span></span>
+      <span>我已知悉，若攜眷或報名第二次以上項目會有費用收取。 <span style="color:#c03030;">*</span></span>
     </label>
 
     <button type="submit" class="submit-btn" id="submitBtn" disabled>請先選擇梯次</button>
