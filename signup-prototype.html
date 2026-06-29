@@ -197,6 +197,30 @@
       cursor: not-allowed;
       pointer-events: none;
     }
+    /* ── Weekday companion type radio ── */
+    .cp-type-row {
+      display: flex;
+      gap: 12px;
+      padding: 6px 10px 8px;
+      border-top: 1px solid rgba(0,0,0,0.15);
+      background: rgba(0,0,0,0.04);
+      border-radius: 0 0 8px 8px;
+    }
+    .cp-type-option {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cp-type-option input[type=radio] {
+      width: 14px; height: 14px;
+      accent-color: var(--slot-color, var(--text));
+      cursor: pointer;
+      flex-shrink: 0;
+    }
 
     /* ── Form fields ── */
     .field-row {
@@ -413,7 +437,6 @@
 
     <div class="field-group">
       <label class="field-label" for="note">備註</label>
-      <p style="font-size:0.78rem;color:#555;margin:0 0 5px;">烘焙蛋糕體驗選擇平日場並攜伴者，請於備註欄填寫眷屬安排：「眷屬陪同」或「眷屬自費」。</p>
       <textarea id="note" placeholder="其他需求請填寫（選填）"></textarea>
     </div>
 
@@ -468,8 +491,8 @@ const ACTIVITIES = {
     location:   '士林店或南京店，近捷運劍潭站／南京三民站，步行約 5－8 分鐘',
     maxPerSlot: 4,
     slots: [
-      { id: 'k1', name: '梯次一', date: '7/19', time: '14:00', weekday: '(日)' },
-      { id: 'k2', name: '梯次二', date: '7/26', time: '14:00', weekday: '(日)' },
+      { id: 'k1', name: '梯次一', date: '7/19', time: '14:00', weekday: '(日)', isWeekday: true },
+      { id: 'k2', name: '梯次二', date: '7/26', time: '14:00', weekday: '(日)', isWeekday: true },
       { id: 'k3', name: '梯次三', date: '8/2',  time: '14:00', weekday: '(日)' },
     ],
   },
@@ -505,7 +528,8 @@ const DEPT_MAP = {
 let selectedActivity  = null;
 let selectedSlot      = null;
 let selectedCompanion = false;
-let selectedWaitlist  = false;   // true = 候補登記
+let selectedWaitlist      = false;   // true = 候補登記
+let selectedCompanionType = null;    // '眷屬陪同（免費）' | '眷屬自費' | null
 let quotaCounts       = {};
 
 // slot label: '梯次一 7/5 14:00 (日)'
@@ -532,6 +556,7 @@ function renderAll() {
           const isFull              = remaining <= 0;
           const isChosen    = selectedSlot === label && !selectedWaitlist;
           const companionOk = remaining >= 2;
+          const showCpType  = isChosen && selectedCompanion && slot.isWeekday;
           return `
             <div class="slot-card${isFull ? ' full' : ''}${isChosen ? ' selected' : ''}"
                  onclick="${isFull ? '' : `pickSlot('${actKey}','${label}')`}">
@@ -549,7 +574,22 @@ function renderAll() {
                   onchange="onCompanionChange('${actKey}','${label}',this.checked)">
                 攜伴 +1${!companionOk ? '（名額不足）' : ''}
               </label>` : ''}
+              ${showCpType ? `<div class="cp-type-row" onclick="event.stopPropagation()">
+                <label class="cp-type-option">
+                  <input type="radio" name="cpType" value="眷屬陪同（免費）"
+                    ${selectedCompanionType==='眷屬陪同（免費）' ? 'checked' : ''}
+                    onchange="selectedCompanionType=this.value; updateSubmitBtn();">
+                  眷屬陪同（免費）
+                </label>
+                <label class="cp-type-option">
+                  <input type="radio" name="cpType" value="眷屬自費"
+                    ${selectedCompanionType==='眷屬自費' ? 'checked' : ''}
+                    onchange="selectedCompanionType=this.value; updateSubmitBtn();">
+                  眷屬自費
+                </label>
+              </div>` : ''}
             </div>`;
+
         }).join('')}
       </div>
     </div>`
@@ -582,7 +622,7 @@ function renderCompanion() {
 }
 
 function pickSlot(actKey, label) {
-  if (selectedSlot !== label) selectedCompanion = false;
+  if (selectedSlot !== label) { selectedCompanion = false; selectedCompanionType = null; }
   selectedActivity = actKey;
   selectedSlot     = label;
   selectedWaitlist = false;
@@ -670,9 +710,10 @@ function onWaitlistSlotChange() {
 }
 
 function onCompanionChange(actKey, label, checked) {
-  selectedActivity  = actKey;
-  selectedSlot      = label;
-  selectedCompanion = checked;
+  selectedActivity      = actKey;
+  selectedSlot          = label;
+  selectedCompanion     = checked;
+  if (!checked) selectedCompanionType = null;
   renderAll();
   updateSubmitBtn();
 }
@@ -680,6 +721,13 @@ function onCompanionChange(actKey, label, checked) {
 // ================================================================
 // Submit button state
 // ================================================================
+function needsCpType() {
+  if (!selectedActivity || !selectedSlot || !selectedCompanion) return false;
+  const act  = ACTIVITIES[selectedActivity];
+  const slot = act.slots.find(s => slotLabel(s) === selectedSlot);
+  return !!(slot?.isWeekday);
+}
+
 function updateSubmitBtn() {
   const btn = document.getElementById('submitBtn');
   const ack = document.getElementById('ackCheck');
@@ -689,6 +737,9 @@ function updateSubmitBtn() {
   } else if (!ack?.checked) {
     btn.disabled    = true;
     btn.textContent = '請先勾選下方確認項目';
+  } else if (needsCpType() && !selectedCompanionType) {
+    btn.disabled    = true;
+    btn.textContent = '請選擇眷屬安排';
   } else {
     btn.disabled    = false;
     btn.textContent = selectedWaitlist ? '確認候補登記' : '確認報名';
@@ -776,7 +827,7 @@ async function handleSubmit(e) {
         empId:      document.getElementById('empId').value.trim(),
         division:   document.getElementById('division').value,
         department: document.getElementById('department').value,
-        note:       document.getElementById('note').value.trim(),
+        note:       [document.getElementById('note').value.trim(), selectedCompanionType ? `攜伴類型：${selectedCompanionType}` : ''].filter(Boolean).join('；'),
       }),
     });
 
@@ -793,10 +844,11 @@ async function handleSubmit(e) {
         ? `📋 已登記候補！若可增加名額將由福委通知「${act.name} — ${selectedSlot}」`
         : `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`;
       e.target.reset();
-      selectedActivity  = null;
-      selectedSlot      = null;
-      selectedCompanion = false;
-      selectedWaitlist  = false;
+      selectedActivity      = null;
+      selectedSlot          = null;
+      selectedCompanion     = false;
+      selectedWaitlist      = false;
+      selectedCompanionType = null;
       renderAll();
       updateSubmitBtn();
     } else if (data.status === 'full') {
