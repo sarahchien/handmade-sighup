@@ -820,8 +820,7 @@ async function handleSubmit(e) {
         empId:      document.getElementById('empId').value.trim(),
         division:   document.getElementById('division').value,
         department: document.getElementById('department').value,
-        note:         document.getElementById('note').value.trim(),
-        companionNote: selectedCompanionType ? `攜伴類型：${selectedCompanionType}` : '',
+        note:       [document.getElementById('note').value.trim(), selectedCompanionType ? `攜伴類型：${selectedCompanionType}` : ''].filter(Boolean).join('；'),
       }),
     });
 
