@@ -790,7 +790,7 @@ async function handleSubmit(e) {
       }
       msg.className   = 'msg-box success';
       msg.textContent = selectedWaitlist
-        ? `📋 已登記候補！待名額釋出將由福委通知「${act.name} — ${selectedSlot}」`
+        ? `📋 已登記候補！若可增加名額將由福委通知「${act.name} — ${selectedSlot}」`
         : `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`;
       e.target.reset();
       selectedActivity  = null;
