@@ -176,14 +176,14 @@
     /* ── Companion toggle (inside selected slot card) ── */
     .companion-label {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 5px;
+      gap: 8px;
       font-size: 0.73rem;
       color: var(--text-light);
       margin-top: 10px;
       padding-top: 10px;
       border-top: 1px solid rgba(0,0,0,0.28);
-      cursor: pointer;
       user-select: none;
     }
     .companion-label input[type=checkbox] {
@@ -198,14 +198,6 @@
       pointer-events: none;
     }
     /* ── Weekday companion type radio ── */
-    .cp-type-row {
-      display: flex;
-      gap: 12px;
-      padding: 6px 10px 8px;
-      border-top: 1px solid rgba(0,0,0,0.15);
-      background: rgba(0,0,0,0.04);
-      border-radius: 0 0 8px 8px;
-    }
     .cp-type-option {
       display: flex;
       align-items: center;
@@ -566,15 +558,16 @@ function renderAll() {
                 <span class="quota-dot${isFull ? ' full' : ''}"></span>
                 ${isFull ? '已額滿' : `剩餘 ${remaining} 名`}
               </div>
-              ${isChosen ? `<label class="companion-label${companionOk ? '' : ' cp-disabled'}"
+              ${isChosen ? `<div class="companion-label${companionOk ? '' : ' cp-disabled'}"
                   onclick="event.stopPropagation()">
-                <input type="checkbox"
-                  ${selectedCompanion ? 'checked' : ''}
-                  ${companionOk ? '' : 'disabled'}
-                  onchange="onCompanionChange('${actKey}','${label}',this.checked)">
-                攜伴 +1${!companionOk ? '（名額不足）' : ''}
-              </label>` : ''}
-              ${showCpType ? `<div class="cp-type-row" onclick="event.stopPropagation()">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+                  <input type="checkbox"
+                    ${selectedCompanion ? 'checked' : ''}
+                    ${companionOk ? '' : 'disabled'}
+                    onchange="onCompanionChange('${actKey}','${label}',this.checked)">
+                  攜伴 +1${!companionOk ? '（名額不足）' : ''}
+                </label>
+                ${showCpType ? `
                 <label class="cp-type-option">
                   <input type="radio" name="cpType" value="眷屬陪同（免費）"
                     ${selectedCompanionType==='眷屬陪同（免費）' ? 'checked' : ''}
@@ -586,7 +579,7 @@ function renderAll() {
                     ${selectedCompanionType==='眷屬自費' ? 'checked' : ''}
                     onchange="selectedCompanionType=this.value; updateSubmitBtn();">
                   眷屬自費
-                </label>
+                </label>` : ''}
               </div>` : ''}
             </div>`;
 
@@ -827,7 +820,8 @@ async function handleSubmit(e) {
         empId:      document.getElementById('empId').value.trim(),
         division:   document.getElementById('division').value,
         department: document.getElementById('department').value,
-        note:       [document.getElementById('note').value.trim(), selectedCompanionType ? `攜伴類型：${selectedCompanionType}` : ''].filter(Boolean).join('；'),
+        note:         document.getElementById('note').value.trim(),
+        companionNote: selectedCompanionType ? `攜伴類型：${selectedCompanionType}` : '',
       }),
     });
 
