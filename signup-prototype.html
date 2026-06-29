@@ -142,7 +142,7 @@
     }
     .quota-dot.full { background: #c07070; }
 
-    /* ── Companion toggle ── */
+    /* ── Companion toggle (inside selected slot card) ── */
     .companion-label {
       display: flex;
       align-items: center;
@@ -465,8 +465,7 @@ function renderAll() {
           const remaining        = act.maxPerSlot - count;
           const isFull           = remaining <= 0;
           const isChosen         = selectedSlot === label;
-          const companionChecked = isChosen && selectedCompanion;
-          const companionOk      = !isFull && remaining >= 2; // 需至少 2 個名額
+          const companionOk = !isFull && remaining >= 2;
           return `
             <div class="slot-card${isFull ? ' full' : ''}${isChosen ? ' selected' : ''}"
                  onclick="${isFull ? '' : `pickSlot('${actKey}','${label}')`}">
@@ -476,10 +475,10 @@ function renderAll() {
                 <span class="quota-dot${isFull ? ' full' : ''}"></span>
                 ${isFull ? '已額滿' : `剩餘 ${remaining} 名`}
               </div>
-              ${!isFull ? `<label class="companion-label${companionOk ? '' : ' cp-disabled'}"
+              ${isChosen ? `<label class="companion-label${companionOk ? '' : ' cp-disabled'}"
                   onclick="event.stopPropagation()">
                 <input type="checkbox"
-                  ${companionChecked ? 'checked' : ''}
+                  ${selectedCompanion ? 'checked' : ''}
                   ${companionOk ? '' : 'disabled'}
                   onchange="onCompanionChange('${actKey}','${label}',this.checked)">
                 攜伴 +1${!companionOk ? '（名額不足）' : ''}
@@ -489,6 +488,31 @@ function renderAll() {
       </div>
     </div>`
   ).join('');
+}
+
+function renderCompanion() {
+  const sec = document.getElementById('companionSection');
+  if (!sec) return;
+  if (!selectedSlot || !selectedActivity) { sec.style.display = 'none'; return; }
+
+  const act       = ACTIVITIES[selectedActivity];
+  const count     = quotaCounts[selectedSlot] || 0;
+  const remaining = act.maxPerSlot - count;
+  const canBring  = remaining >= 2;
+
+  sec.style.display = '';
+  sec.innerHTML = `
+    <div class="companion-section">
+      <div class="companion-section-title">攜伴</div>
+      <label class="companion-label${canBring ? '' : ' cp-disabled'}">
+        <input type="checkbox"
+          ${selectedCompanion ? 'checked' : ''}
+          ${canBring ? '' : 'disabled'}
+          onchange="onCompanionChange('${selectedActivity}','${selectedSlot}',this.checked)">
+        攜伴 +1（佔用 2 個名額）
+      </label>
+      ${!canBring ? `<div class="companion-hint">⚠️ 此梯次剩餘名額不足，無法攜伴。</div>` : ''}
+    </div>`;
 }
 
 function pickSlot(actKey, label) {
