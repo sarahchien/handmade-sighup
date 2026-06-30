@@ -109,7 +109,7 @@
       transition: border-color .15s, background .15s;
       user-select: none;
     }
-    .slot-card.full { opacity: .65; cursor: default; }
+    .slot-card.full { cursor: default; }
     .slot-card.waitlist-chosen {
       opacity: 1;
       border-color: var(--slot-color);
@@ -197,8 +197,9 @@
     }
     .wish-option {
       display: flex;
+      flex-wrap: wrap;
       align-items: center;
-      gap: 10px;
+      gap: 0;
       padding: 10px 14px;
       border: 1.5px solid var(--border);
       border-radius: 8px;
@@ -210,9 +211,21 @@
       background: var(--input-bg);
       transition: border-color .15s, background .15s;
     }
-    .wish-option:has(input:checked) {
+    .wish-option-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .wish-option:has(input[type=radio]:checked),
+    .wish-option.wish-chosen {
       border-color: #7a5030;
       background: #f5ede0;
+    }
+    .wish-option.wish-disabled {
+      opacity: 0.38;
+      cursor: not-allowed;
+      pointer-events: none;
     }
     .wish-option input[type=radio] {
       width: 15px; height: 15px;
@@ -225,6 +238,25 @@
       font-size: 0.72rem;
       font-weight: 400;
       color: #999;
+    }
+    .wish-companion {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      width: 100%;
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(0,0,0,.12);
+      font-size: 0.8rem;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+    .wish-companion input[type=checkbox] {
+      width: 14px; height: 14px;
+      accent-color: #7a5030;
+      cursor: pointer;
+      flex-shrink: 0;
     }
 
     /* ── Companion toggle (inside selected slot card) ── */
@@ -464,7 +496,7 @@
     <div class="notice-box">
       <div class="notice-title">❗ 注意事項</div>
       <ul>
-        <li>額滿梯次將顯示「已額滿」並關閉選擇；歡迎登記候補，有登記有機會安排。</li>
+        <li>額滿梯次將顯示「已額滿」並同時開啟候補登記，有登記有機會安排。</li>
         <li>有興趣自費報名其他項目的同仁，第二次以上登記請在員工編號末尾加上小寫英文字母第二次加「a」、第三次加「aa」，以此類推，(例：11003001a、11003001aa)，費用細節將由福委另行通知。</li>
         <li>若需取消或更改梯次，請聯繫福委群。</li>
       </ul>
@@ -630,21 +662,32 @@ function renderAll() {
 function renderWish() {
   const el = document.getElementById('wishOptions');
   if (!el) return;
+  const isWishing = selectedWaitlist && selectedSlot === '許願加開新梯次';
   el.innerHTML = Object.entries(ACTIVITIES).map(([actKey, act]) => {
     const allFull = act.slots.every(s => {
       const lbl  = slotLabel(s);
       const sMax = s.maxPerSlot ?? act.maxPerSlot;
       return (quotaCounts[lbl] || 0) >= sMax;
     });
-    const isChosen = selectedWaitlist && selectedSlot === '許願加開新梯次' && selectedActivity === actKey;
+    const isChosen   = isWishing && selectedActivity === actKey;
+    const isDisabled = !allFull;
     return `
-    <label class="wish-option">
-      <input type="radio" name="wishAct" value="${actKey}"
-        ${isChosen ? 'checked' : ''}
-        onchange="pickWish('${actKey}')">
-      <span class="wish-act-name">${act.icon} ${act.name}</span>
-      <span class="wish-act-status">${allFull ? '🔴 全梯次已滿' : '🟢 尚有名額'}</span>
-    </label>`;
+    <div class="wish-option${isDisabled ? ' wish-disabled' : ''}${isChosen ? ' wish-chosen' : ''}"
+         onclick="${isDisabled ? '' : `pickWish('${actKey}')`}">
+      <div class="wish-option-row">
+        <input type="radio" name="wishAct" value="${actKey}"
+          ${isChosen ? 'checked' : ''} ${isDisabled ? 'disabled' : ''}
+          onclick="event.stopPropagation()"
+          onchange="pickWish('${actKey}')">
+        <span class="wish-act-name">${act.icon} ${act.name}</span>
+        <span class="wish-act-status">${allFull ? '🔴 全梯次已滿' : '🟢 尚有名額'}</span>
+      </div>
+      ${isChosen ? `<label class="wish-companion" onclick="event.stopPropagation()">
+        <input type="checkbox" ${selectedCompanion ? 'checked' : ''}
+          onchange="selectedCompanion=this.checked; updateSubmitBtn();">
+        攜伴 +1
+      </label>` : ''}
+    </div>`;
   }).join('');
 }
 
