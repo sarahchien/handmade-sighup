@@ -426,6 +426,61 @@
     @media (max-width: 380px) {
       .form-card { padding: 20px 16px; }
     }
+
+    /* ── Result modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 36px 28px 28px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 12px 48px rgba(0,0,0,.2);
+      animation: modalPop .2s ease;
+    }
+    @keyframes modalPop {
+      from { transform: scale(.92); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .modal-icon { font-size: 2.6rem; margin-bottom: 14px; line-height: 1; }
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+    .modal-msg {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      color: #666;
+      margin-bottom: 24px;
+      white-space: pre-line;
+    }
+    .modal-btn {
+      padding: 11px 32px;
+      background: var(--text);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .modal-btn:hover { opacity: .8; }
+    .modal-btn.error-btn { background: #c03030; }
   </style>
 </head>
 <body>
@@ -511,7 +566,16 @@
     <button type="submit" class="submit-btn" id="submitBtn" disabled>請先選擇梯次</button>
   </form>
 
-  <div class="msg-box" id="msgBox"></div>
+</div>
+
+<!-- Result modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-icon" id="modalIcon"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-msg" id="modalMsg"></div>
+    <button class="modal-btn" id="modalBtn" onclick="closeModal()">關閉</button>
+  </div>
 </div>
 
 
@@ -845,13 +909,23 @@ async function fetchCounts() {
 // ================================================================
 // Submit
 // ================================================================
+function showModal(type, icon, title, msg) {
+  document.getElementById('modalIcon').textContent  = icon;
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMsg').textContent   = msg;
+  const btn = document.getElementById('modalBtn');
+  btn.className = type === 'error' ? 'modal-btn error-btn' : 'modal-btn';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
 async function handleSubmit(e) {
   e.preventDefault();
   if (!selectedActivity || !selectedSlot) return;
 
   const btn = document.getElementById('submitBtn');
-  const msg = document.getElementById('msgBox');
-  msg.className   = 'msg-box';
   btn.disabled    = true;
   btn.textContent = '送出中…';
 
@@ -865,10 +939,10 @@ async function handleSubmit(e) {
 
     // 確認報名才做容量檢查；候補直接跳過
     if (!selectedWaitlist && count + seatsNeeded > slotMax) {
-      msg.className   = 'msg-box error';
-      msg.textContent = (selectedCompanion && slotMax - count === 1)
-        ? '⚠️ 此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
-        : '⚠️ 此梯次名額已滿，請選擇其他梯次。';
+      const errMsg = (selectedCompanion && slotMax - count === 1)
+        ? '此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
+        : '此梯次名額已滿，請選擇其他梯次。';
+      showModal('error', '⚠️', '名額不足', errMsg);
       btn.disabled    = false;
       btn.textContent = selectedWaitlist ? '確認候補登記' : '確認報名';
       return;
@@ -896,15 +970,14 @@ async function handleSubmit(e) {
 
     if (data.status === 'ok') {
       if (!selectedWaitlist) {
-        // 確認報名：樂觀更新名額
-        quotaCounts[selectedSlot] = (quotaCounts[selectedSlot] || 0) + (selectedCompanion ? 2 : 1);
+        quotaCounts[selectedSlot] = (quotaCounts[selectedSlot] || 0) + 1;
       }
-      msg.className   = 'msg-box success';
-      msg.textContent = !selectedWaitlist
-        ? `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`
+      const [icon, title, body] = !selectedWaitlist
+        ? ['✅', '報名成功！', `已登記「${act.name} — ${selectedSlot}」`]
         : selectedSlot === '許願加開新梯次'
-        ? `✨ 許願已送出！感謝您！福委將參考許願人數評估是否加開「${act.name}」`
-        : `📋 已登記候補！若可增加名額將由福委通知「${act.name} — ${selectedSlot}」`;
+        ? ['✨', '許願已送出！', `感謝您！福委將參考許願人數評估是否加開「${act.name}」`]
+        : ['📋', '候補登記完成！', `若可增加名額將由福委通知「${act.name} — ${selectedSlot}」`];
+      showModal('success', icon, title, body);
       e.target.reset();
       selectedActivity      = null;
       selectedSlot          = null;
@@ -914,31 +987,26 @@ async function handleSubmit(e) {
       renderAll();
       updateSubmitBtn();
     } else if (data.status === 'full') {
-      await fetchCounts(); // 重抓最新名額（攜伴時可能只是名額不足，未必真的全滿）
+      await fetchCounts();
       renderAll();
       const freshRemaining = slotMax - (quotaCounts[selectedSlot] || 0);
-      msg.className   = 'msg-box error';
-      msg.textContent = (selectedCompanion && freshRemaining === 1)
-        ? '⚠️ 此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
-        : '⚠️ 此梯次名額已滿，請選擇其他梯次。';
+      const errMsg = (selectedCompanion && freshRemaining === 1)
+        ? '此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
+        : '此梯次名額已滿，請選擇其他梯次。';
+      showModal('error', '⚠️', '名額不足', errMsg);
       btn.disabled    = false;
       btn.textContent = '確認報名';
     } else if (data.status === 'duplicate') {
-      msg.className   = 'msg-box error';
-      msg.textContent = '⚠️ 此員工編號已提交報名登記，不可重複報名，若有疑問請洽福委群。';
+      showModal('error', '⚠️', '重複報名', '此工號已有報名紀錄。\n\n若要報名第二個活動，請在工號末尾加英文字母再送出：第二次加 a、第三次加 aa（例：11003001a）。費用將由福委另行通知。');
       btn.disabled    = false;
       btn.textContent = '確認報名';
     } else {
-      // 非預期回應
-      msg.className   = 'msg-box error';
-      msg.textContent = '⚠️ 提交失敗，請稍後再試或聯絡福委群。';
+      showModal('error', '⚠️', '提交失敗', '請稍後再試或聯絡福委群。');
       btn.disabled    = false;
       btn.textContent = '確認報名';
     }
   } catch {
-    // 網路錯誤或 Power Automate 回傳非 JSON
-    msg.className   = 'msg-box error';
-    msg.textContent = '⚠️ 提交失敗，請稍後再試或聯絡福委群。';
+    showModal('error', '⚠️', '提交失敗', '請稍後再試或聯絡福委群。');
     btn.disabled    = false;
     btn.textContent = '確認報名';
   }
