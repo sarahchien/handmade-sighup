@@ -109,7 +109,35 @@
       transition: border-color .15s, background .15s;
       user-select: none;
     }
-    .slot-card.full { opacity: .45; cursor: not-allowed; }
+    .slot-card.full { opacity: .65; cursor: default; }
+    .slot-card.waitlist-chosen {
+      opacity: 1;
+      border-color: var(--slot-color);
+      border-style: dashed;
+    }
+    .slot-waitlist-btn {
+      display: block;
+      width: 100%;
+      margin-top: 10px;
+      padding: 6px 10px;
+      background: color-mix(in srgb, var(--slot-color, #7a5030) 12%, white);
+      border: 1.5px solid var(--slot-color, var(--border));
+      border-radius: 7px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--slot-color, var(--text));
+      cursor: pointer;
+      font-family: inherit;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .slot-waitlist-btn:hover {
+      background: color-mix(in srgb, var(--slot-color, var(--text)) 25%, white);
+    }
+    .slot-waitlist-btn.chosen {
+      background: var(--slot-color, var(--text));
+      border-color: var(--slot-color, var(--text));
+      color: #fff;
+    }
     .slot-card.selected {
       border-color: var(--slot-color);
       background: var(--slot-bg);
@@ -148,36 +176,56 @@
     }
     .quota-dot.full { background: #c07070; }
 
-    /* ── Waitlist section ── */
-    .waitlist-section {
-      margin: 0;
+    /* ── Wish section ── */
+    .wish-section { margin: 0; }
+    .wish-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
     }
-    .waitlist-toggle-row {
+    .wish-desc {
+      font-size: 0.78rem;
+      color: #777;
+      margin: 0 0 10px;
+      line-height: 1.6;
+    }
+    .wish-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .wish-option {
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 0.85rem;
-      color: var(--text);
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
       cursor: pointer;
       user-select: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--input-bg);
+      transition: border-color .15s, background .15s;
     }
-    .waitlist-toggle-row input[type=checkbox] {
+    .wish-option:has(input:checked) {
+      border-color: #7a5030;
+      background: #f5ede0;
+    }
+    .wish-option input[type=radio] {
       width: 15px; height: 15px;
+      accent-color: #7a5030;
       cursor: pointer;
       flex-shrink: 0;
     }
-    .waitlist-body {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .wish-act-name { flex: 1; }
+    .wish-act-status {
+      font-size: 0.72rem;
+      font-weight: 400;
+      color: #999;
     }
-    .waitlist-select-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    @media (max-width: 500px) { .waitlist-select-row { grid-template-columns: 1fr; } }
 
     /* ── Companion toggle (inside selected slot card) ── */
     .companion-label {
@@ -364,36 +412,11 @@
 
   <hr class="divider">
 
-  <!-- 候補登記 -->
-  <div class="waitlist-section">
-    <label class="waitlist-toggle-row">
-      <input type="checkbox" id="waitlistCheck" onchange="onWaitlistToggle()">
-      額滿登記候補
-    </label>
-    <div id="waitlistBody" style="display:none;" class="waitlist-body">
-      <div class="waitlist-select-row">
-        <div>
-          <label class="field-label" style="margin-bottom:4px;">活動項目</label>
-          <select id="waitlistActivity" onchange="onWaitlistActivityChange()">
-            <option value="">— 選擇活動 —</option>
-          </select>
-        </div>
-        <div>
-          <label class="field-label" style="margin-bottom:4px;">梯次</label>
-          <select id="waitlistSlot" onchange="onWaitlistSlotChange()">
-            <option value="">— 選擇梯次 —</option>
-          </select>
-        </div>
-      </div>
-      <div id="waitlistCompanion" style="display:none;">
-        <label class="companion-label" style="border-top:none;padding-top:0;">
-          <input type="checkbox" id="waitlistCompanionCheck"
-            onchange="selectedCompanion=this.checked; updateSubmitBtn();">
-          攜伴 +1
-        </label>
-      </div>
-      <p style="font-size:0.78rem;color:#555;font-weight:600;margin:4px 0 0;">視場地與活動性質，福委評估是否可多容納人數或加開梯次後回覆。</p>
-    </div>
+  <!-- 許願加開 -->
+  <div class="wish-section">
+    <div class="wish-title">✨ 許願加開梯次</div>
+    <p class="wish-desc">若您有興趣的活動所有梯次皆已額滿，可在此許願；福委將參考人數評估是否加開。</p>
+    <div class="wish-options" id="wishOptions"><!-- rendered by renderWish() --></div>
   </div>
 
   <hr class="divider">
@@ -548,16 +571,17 @@ function renderAll() {
       </div>
       <div class="slots-grid" style="--slot-color:${act.slotColor};--slot-bg:${act.slotBg};">
         ${act.slots.map(slot => {
-          const label               = slotLabel(slot);
-          const count               = quotaCounts[label] || 0;
-          const slotMax             = slot.maxPerSlot ?? act.maxPerSlot;
-          const remaining           = slotMax - count;
-          const isFull              = remaining <= 0;
-          const isChosen    = selectedSlot === label && !selectedWaitlist;
-          const companionOk = remaining >= 2;
-          const showCpType  = isChosen && selectedCompanion && slot.isWeekday;
+          const label              = slotLabel(slot);
+          const count              = quotaCounts[label] || 0;
+          const slotMax            = slot.maxPerSlot ?? act.maxPerSlot;
+          const remaining          = slotMax - count;
+          const isFull             = remaining <= 0;
+          const isChosen           = selectedSlot === label && !selectedWaitlist;
+          const isWaitlistChosen   = selectedSlot === label && selectedWaitlist;
+          const companionOk        = remaining >= 2;
+          const showCpType         = isChosen && selectedCompanion && slot.isWeekday;
           return `
-            <div class="slot-card${isFull ? ' full' : ''}${isChosen ? ' selected' : ''}"
+            <div class="slot-card${isFull ? ' full' : ''}${isChosen ? ' selected' : ''}${isWaitlistChosen ? ' waitlist-chosen' : ''}"
                  onclick="${isFull ? '' : `pickSlot('${actKey}','${label}')`}">
               <div class="slot-name">${slot.name}</div>
               <div class="slot-datetime">${slot.date} ${slot.time} ${slot.weekday}</div>
@@ -566,6 +590,11 @@ function renderAll() {
                 <span class="quota-dot${isFull ? ' full' : ''}"></span>
                 ${isFull ? '已額滿' : `剩餘 ${remaining} 名`}
               </div>
+              ${isFull ? `
+              <button class="slot-waitlist-btn${isWaitlistChosen ? ' chosen' : ''}"
+                onclick="event.stopPropagation(); pickWaitlist('${actKey}','${label}')">
+                ${isWaitlistChosen ? '✓ 候補登記中' : '📋 候補登記'}
+              </button>` : ''}
               ${isChosen ? `<div class="companion-label${companionOk ? '' : ' cp-disabled'}"
                   onclick="event.stopPropagation()">
                 <label style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
@@ -595,6 +624,28 @@ function renderAll() {
       </div>
     </div>`
   ).join('');
+  renderWish();
+}
+
+function renderWish() {
+  const el = document.getElementById('wishOptions');
+  if (!el) return;
+  el.innerHTML = Object.entries(ACTIVITIES).map(([actKey, act]) => {
+    const allFull = act.slots.every(s => {
+      const lbl  = slotLabel(s);
+      const sMax = s.maxPerSlot ?? act.maxPerSlot;
+      return (quotaCounts[lbl] || 0) >= sMax;
+    });
+    const isChosen = selectedWaitlist && selectedSlot === '許願加開新梯次' && selectedActivity === actKey;
+    return `
+    <label class="wish-option">
+      <input type="radio" name="wishAct" value="${actKey}"
+        ${isChosen ? 'checked' : ''}
+        onchange="pickWish('${actKey}')">
+      <span class="wish-act-name">${act.icon} ${act.name}</span>
+      <span class="wish-act-status">${allFull ? '🔴 全梯次已滿' : '🟢 尚有名額'}</span>
+    </label>`;
+  }).join('');
 }
 
 function renderCompanion() {
@@ -627,9 +678,6 @@ function pickSlot(actKey, label) {
   selectedActivity = actKey;
   selectedSlot     = label;
   selectedWaitlist = false;
-  // 清掉候補 checkbox
-  const wc = document.getElementById('waitlistCheck');
-  if (wc) { wc.checked = false; document.getElementById('waitlistBody').style.display = 'none'; }
   renderAll();
   updateSubmitBtn();
 }
@@ -643,71 +691,14 @@ function pickWaitlist(actKey, label) {
   updateSubmitBtn();
 }
 
-// ── Waitlist handlers ──
-function onWaitlistToggle() {
-  const checked = document.getElementById('waitlistCheck').checked;
-  document.getElementById('waitlistBody').style.display = checked ? '' : 'none';
-  if (checked) {
-    // 清掉正常報名選擇，互斥
-    selectedSlot      = null;
-    selectedActivity  = null;
-    selectedCompanion = false;
-    selectedWaitlist  = true;
-    renderAll();
-    // 填入活動選項
-    const actSel = document.getElementById('waitlistActivity');
-    actSel.innerHTML = '<option value="">— 選擇活動 —</option>'
-      + Object.entries(ACTIVITIES).map(([k,a]) => `<option value="${k}">${a.name}</option>`).join('');
-    document.getElementById('waitlistSlot').innerHTML = '<option value="">— 選擇梯次 —</option>';
-    document.getElementById('waitlistCompanion').style.display = 'none';
-  } else {
-    selectedWaitlist  = false;
-    selectedActivity  = null;
-    selectedSlot      = null;
-    selectedCompanion = false;
-    renderAll();
-  }
-  updateSubmitBtn();
-}
-
-function onWaitlistActivityChange() {
-  const actKey = document.getElementById('waitlistActivity').value;
-  const slotSel = document.getElementById('waitlistSlot');
-  slotSel.innerHTML = '<option value="">— 選擇梯次 —</option>';
-  document.getElementById('waitlistCompanion').style.display = 'none';
-  selectedActivity  = null;
-  selectedSlot      = null;
-  if (!actKey) { updateSubmitBtn(); return; }
-  const act = ACTIVITIES[actKey];
-  const fullSlots = act.slots.filter(s => {
-    const label   = slotLabel(s);
-    const sMax    = s.maxPerSlot ?? act.maxPerSlot;
-    return (quotaCounts[label] || 0) >= sMax;
-  });
-  if (fullSlots.length === 0) {
-    slotSel.innerHTML = '<option value="">（此活動目前尚有名額）</option>';
-    updateSubmitBtn();
-    return;
-  }
-  slotSel.innerHTML = '<option value="">— 選擇梯次 —</option>'
-    + fullSlots.map(s => {
-        const label = slotLabel(s);
-        return `<option value="${actKey}|${label}">${label}</option>`;
-      }).join('');
-  updateSubmitBtn();
-}
-
-function onWaitlistSlotChange() {
-  const val = document.getElementById('waitlistSlot').value;
-  document.getElementById('waitlistCompanion').style.display = 'none';
-  document.getElementById('waitlistCompanionCheck').checked = false;
+// ── Wish handler ──
+function pickWish(actKey) {
+  selectedActivity  = actKey;
+  selectedSlot      = '許願加開新梯次';
+  selectedWaitlist  = true;
   selectedCompanion = false;
-  if (!val) { selectedActivity = null; selectedSlot = null; updateSubmitBtn(); return; }
-  const [actKey, label] = val.split('|');
-  selectedActivity = actKey;
-  selectedSlot     = label;
-  selectedWaitlist = true;
-  document.getElementById('waitlistCompanion').style.display = '';
+  selectedCompanionType = null;
+  renderAll();
   updateSubmitBtn();
 }
 
@@ -744,7 +735,9 @@ function updateSubmitBtn() {
     btn.textContent = '請選擇眷屬安排';
   } else {
     btn.disabled    = false;
-    btn.textContent = selectedWaitlist ? '確認候補登記' : '確認報名';
+    btn.textContent = !selectedWaitlist ? '確認報名'
+      : selectedSlot === '許願加開新梯次' ? '送出許願'
+      : '確認候補登記';
   }
 }
 
@@ -775,10 +768,29 @@ function updateDept() {
 // ================================================================
 // fetchCounts — silent background polling
 // ================================================================
+// GET flow Response body 目前 key 仍用舊梯次 label，此對照表負責轉換
+const KEY_REMAP = {
+  '梯次一 7/5 14:00 (日)':  '梯次一 8/14 18:30 (五)',
+  '梯次二 7/12 14:00 (日)': '梯次二 8/21 18:30 (五)',
+  '梯次一 7/19 14:00 (日)': '梯次一 9/4 18:30 (五)',
+  '梯次二 7/26 14:00 (日)': '梯次二 9/11 18:30 (五)',
+  '梯次一 8/1 14:00 (六)':  '梯次一 8/28 19:00 (五)',
+  '梯次二 8/8 14:00 (六)':  '梯次二 8/28 19:00 (五)',
+  '梯次三 8/15 14:00 (六)': '梯次三 8/28 19:00 (五)',
+  '梯次四 8/22 14:00 (六)': '梯次四 8/28 19:00 (五)',
+  '梯次五 8/29 14:00 (六)': '梯次五 8/28 19:00 (五)',
+  '梯次三 8/2 14:00 (日)':  '梯次三 9/12 09:30 (六)',
+};
+
 async function fetchCounts() {
   try {
     const res  = await fetch(GET_URL + '&_t=' + Date.now(), { method: 'POST' });
-    const json = await res.json();
+    const raw  = await res.json();
+    // 將舊 key 對應到新梯次 label（待後端 concat 更新後可移除此 remap）
+    const json = {};
+    for (const [k, v] of Object.entries(raw)) {
+      json[KEY_REMAP[k] ?? k] = v;
+    }
     if (JSON.stringify(json) !== JSON.stringify(quotaCounts)) {
       quotaCounts = json;
       renderAll();
@@ -844,9 +856,11 @@ async function handleSubmit(e) {
         quotaCounts[selectedSlot] = (quotaCounts[selectedSlot] || 0) + (selectedCompanion ? 2 : 1);
       }
       msg.className   = 'msg-box success';
-      msg.textContent = selectedWaitlist
-        ? `📋 已登記候補！若可增加名額將由福委通知「${act.name} — ${selectedSlot}」`
-        : `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`;
+      msg.textContent = !selectedWaitlist
+        ? `✅ 報名成功！已登記「${act.name} — ${selectedSlot}」`
+        : selectedSlot === '許願加開新梯次'
+        ? `✨ 許願已送出！感謝您！福委將參考許願人數評估是否加開「${act.name}」`
+        : `📋 已登記候補！若可增加名額將由福委通知「${act.name} — ${selectedSlot}」`;
       e.target.reset();
       selectedActivity      = null;
       selectedSlot          = null;
