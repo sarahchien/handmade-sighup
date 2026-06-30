@@ -520,7 +520,9 @@
       </div>
       <div class="field-group">
         <label class="field-label" for="empId">員工編號 <span class="req">*</span></label>
-        <input type="text" id="empId" placeholder="請輸入員工編號" required>
+        <input type="text" id="empId" placeholder="請輸入員工編號" required
+          oninput="validateEmpId(this)">
+        <div id="empIdErr" style="display:none;font-size:0.75rem;color:#c03030;margin-top:4px;">格式錯誤，請輸入數字（第二次報名末尾加 a，如 11003001a）</div>
       </div>
     </div>
 
@@ -852,6 +854,21 @@ function updateSubmitBtn() {
 // ================================================================
 // Dept map
 // ================================================================
+// ================================================================
+// 工號格式驗證
+// ================================================================
+const EMPID_RE = /^\d+a{0,2}$/;
+
+function validateEmpId(input) {
+  const val = input.value.trim();
+  const err = document.getElementById('empIdErr');
+  if (val && !EMPID_RE.test(val)) {
+    err.style.display = '';
+  } else {
+    err.style.display = 'none';
+  }
+}
+
 function updateDept() {
   const div   = document.getElementById('division').value;
   const depts = DEPT_MAP[div] || [];
@@ -925,7 +942,14 @@ async function handleSubmit(e) {
   e.preventDefault();
   if (!selectedActivity || !selectedSlot) return;
 
-  const btn = document.getElementById('submitBtn');
+  const btn   = document.getElementById('submitBtn');
+  const empId = document.getElementById('empId').value.trim();
+  if (!EMPID_RE.test(empId)) {
+    document.getElementById('empIdErr').style.display = '';
+    document.getElementById('empId').focus();
+    return;
+  }
+
   btn.disabled    = true;
   btn.textContent = '送出中…';
 
