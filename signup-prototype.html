@@ -125,7 +125,13 @@
     .slot-datetime {
       font-size: 0.78rem;
       color: #a08868;
-      margin-bottom: 10px;
+      margin-bottom: 4px;
+    }
+    .slot-subtitle {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--slot-color, var(--text));
+      margin-bottom: 8px;
     }
     .slot-quota {
       display: flex;
@@ -468,10 +474,10 @@ const ACTIVITIES = {
     slotColor:  'var(--c-cal)',
     slotBg:     'var(--c-cal-bg)',
     location:   '公司內部會議室 (801)',
-    maxPerSlot: 3,
+    maxPerSlot: 20,
     slots: [
-      { id: 'c1', name: '梯次一', date: '7/5',  time: '14:00', weekday: '(日)' },
-      { id: 'c2', name: '梯次二', date: '7/12', time: '14:00', weekday: '(日)' },
+      { id: 'c1', name: '梯次一', date: '8/14', time: '18:30', weekday: '(五)' },
+      { id: 'c2', name: '梯次二', date: '8/21', time: '18:30', weekday: '(五)' },
     ],
   },
   cake: {
@@ -480,12 +486,12 @@ const ACTIVITIES = {
     cssClass:   'cake',
     slotColor:  'var(--c-cake)',
     slotBg:     'var(--c-cake-bg)',
-    location:   '士林店或南京店，近捷運劍潭站／南京三民站，步行約 5－8 分鐘',
-    maxPerSlot: 4,
+    location:   '近捷運劍潭站／南京三民站，步行約 5－8 分鐘',
+    maxPerSlot: 26,
     slots: [
-      { id: 'k1', name: '梯次一', date: '7/19', time: '14:00', weekday: '(日)', isWeekday: true },
-      { id: 'k2', name: '梯次二', date: '7/26', time: '14:00', weekday: '(日)', isWeekday: true },
-      { id: 'k3', name: '梯次三', date: '8/2',  time: '14:00', weekday: '(日)' },
+      { id: 'k1', name: '梯次一', date: '9/4',  time: '18:30', weekday: '(五)', isWeekday: true, maxPerSlot: 26, subtitle: '士林館' },
+      { id: 'k2', name: '梯次二', date: '9/11', time: '18:30', weekday: '(五)', isWeekday: true, maxPerSlot: 48, subtitle: '南京館' },
+      { id: 'k3', name: '梯次三', date: '9/12', time: '09:30', weekday: '(六)',                  maxPerSlot: 48, subtitle: '南京館' },
     ],
   },
   escape: {
@@ -495,13 +501,13 @@ const ACTIVITIES = {
     slotColor:  'var(--c-esc)',
     slotBg:     'var(--c-esc-bg)',
     location:   '近捷運南京三民站，步行約 6 分鐘',
-    maxPerSlot: 4,
+    maxPerSlot: 10,
     slots: [
-      { id: 'e1', name: '梯次一', date: '8/1',  time: '14:00', weekday: '(六)' },
-      { id: 'e2', name: '梯次二', date: '8/8',  time: '14:00', weekday: '(六)' },
-      { id: 'e3', name: '梯次三', date: '8/15', time: '14:00', weekday: '(六)' },
-      { id: 'e4', name: '梯次四', date: '8/22', time: '14:00', weekday: '(六)' },
-      { id: 'e5', name: '梯次五', date: '8/29', time: '14:00', weekday: '(六)' },
+      { id: 'e1', name: '梯次一', date: '8/28', time: '19:00', weekday: '(五)', maxPerSlot: 10, subtitle: '奪命鎖鏈' },
+      { id: 'e2', name: '梯次二', date: '8/28', time: '19:00', weekday: '(五)', maxPerSlot: 8,  subtitle: '顛倒之室' },
+      { id: 'e3', name: '梯次三', date: '8/28', time: '19:00', weekday: '(五)', maxPerSlot: 10, subtitle: '奪命記憶' },
+      { id: 'e4', name: '梯次四', date: '8/28', time: '19:00', weekday: '(五)', maxPerSlot: 8,  subtitle: '我們的祕密' },
+      { id: 'e5', name: '梯次五', date: '8/28', time: '19:00', weekday: '(五)', maxPerSlot: 6,  subtitle: '竹本家' },
     ],
   },
 };
@@ -544,7 +550,8 @@ function renderAll() {
         ${act.slots.map(slot => {
           const label               = slotLabel(slot);
           const count               = quotaCounts[label] || 0;
-          const remaining           = act.maxPerSlot - count;
+          const slotMax             = slot.maxPerSlot ?? act.maxPerSlot;
+          const remaining           = slotMax - count;
           const isFull              = remaining <= 0;
           const isChosen    = selectedSlot === label && !selectedWaitlist;
           const companionOk = remaining >= 2;
@@ -554,6 +561,7 @@ function renderAll() {
                  onclick="${isFull ? '' : `pickSlot('${actKey}','${label}')`}">
               <div class="slot-name">${slot.name}</div>
               <div class="slot-datetime">${slot.date} ${slot.time} ${slot.weekday}</div>
+              ${slot.subtitle ? `<div class="slot-subtitle">${slot.subtitle}</div>` : ''}
               <div class="slot-quota">
                 <span class="quota-dot${isFull ? ' full' : ''}"></span>
                 ${isFull ? '已額滿' : `剩餘 ${remaining} 名`}
@@ -672,8 +680,9 @@ function onWaitlistActivityChange() {
   if (!actKey) { updateSubmitBtn(); return; }
   const act = ACTIVITIES[actKey];
   const fullSlots = act.slots.filter(s => {
-    const label = slotLabel(s);
-    return (quotaCounts[label] || 0) >= act.maxPerSlot;
+    const label   = slotLabel(s);
+    const sMax    = s.maxPerSlot ?? act.maxPerSlot;
+    return (quotaCounts[label] || 0) >= sMax;
   });
   if (fullSlots.length === 0) {
     slotSel.innerHTML = '<option value="">（此活動目前尚有名額）</option>';
@@ -793,13 +802,15 @@ async function handleSubmit(e) {
   try {
     await fetchCounts();
     const act         = ACTIVITIES[selectedActivity];
+    const slotObj     = act.slots.find(s => slotLabel(s) === selectedSlot);
+    const slotMax     = slotObj?.maxPerSlot ?? act.maxPerSlot;
     const count       = quotaCounts[selectedSlot] || 0;
     const seatsNeeded = selectedCompanion ? 2 : 1;
 
     // 確認報名才做容量檢查；候補直接跳過
-    if (!selectedWaitlist && count + seatsNeeded > act.maxPerSlot) {
+    if (!selectedWaitlist && count + seatsNeeded > slotMax) {
       msg.className   = 'msg-box error';
-      msg.textContent = (selectedCompanion && act.maxPerSlot - count === 1)
+      msg.textContent = (selectedCompanion && slotMax - count === 1)
         ? '⚠️ 此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
         : '⚠️ 此梯次名額已滿，請選擇其他梯次。';
       btn.disabled    = false;
@@ -813,7 +824,7 @@ async function handleSubmit(e) {
       body: JSON.stringify({
         activity:   act.name,
         slot:       selectedSlot,
-        maxPerSlot: act.maxPerSlot,
+        maxPerSlot: slotMax,
         companion:  selectedCompanion,
         waitlist:   selectedWaitlist,
         name:       document.getElementById('name').value.trim(),
@@ -847,7 +858,7 @@ async function handleSubmit(e) {
     } else if (data.status === 'full') {
       await fetchCounts(); // 重抓最新名額（攜伴時可能只是名額不足，未必真的全滿）
       renderAll();
-      const freshRemaining = act.maxPerSlot - (quotaCounts[selectedSlot] || 0);
+      const freshRemaining = slotMax - (quotaCounts[selectedSlot] || 0);
       msg.className   = 'msg-box error';
       msg.textContent = (selectedCompanion && freshRemaining === 1)
         ? '⚠️ 此梯次剩餘 1 個名額，無法攜伴，請取消攜伴或選擇其他梯次。'
