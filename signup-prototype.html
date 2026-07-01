@@ -798,6 +798,7 @@ function pickSlot(actKey, label) {
   selectedWaitlist = false;
   renderAll();
   updateSubmitBtn();
+  fetchCounts(); // 選梯次當下立刻刷新名額
 }
 
 function pickWaitlist(actKey, label) {
@@ -1049,7 +1050,7 @@ async function handleSubmit(e) {
 // ================================================================
 renderAll();
 fetchCounts();
-setInterval(fetchCounts, 10000);
+setTimeout(() => { fetchCounts(); setInterval(fetchCounts, 10000); }, Math.random() * 5000);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') fetchCounts();
 });
