@@ -1050,7 +1050,7 @@ async function handleSubmit(e) {
 // ================================================================
 renderAll();
 fetchCounts();
-setTimeout(() => { fetchCounts(); setInterval(fetchCounts, 10000); }, Math.random() * 5000);
+setTimeout(() => setInterval(fetchCounts, 10000), Math.random() * 5000);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') fetchCounts();
 });
