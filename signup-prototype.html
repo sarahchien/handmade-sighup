@@ -693,7 +693,15 @@ function renderAll() {
               <button class="slot-waitlist-btn${isWaitlistChosen ? ' chosen' : ''}"
                 onclick="event.stopPropagation(); pickWaitlist('${actKey}','${label}')">
                 ${isWaitlistChosen ? '✓ 候補登記中' : '📋 候補登記'}
-              </button>` : ''}
+              </button>
+              ${isWaitlistChosen ? `<div class="companion-label" onclick="event.stopPropagation()">
+                <label style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+                  <input type="checkbox"
+                    ${selectedCompanion ? 'checked' : ''}
+                    onchange="onCompanionChange('${actKey}','${label}',this.checked)">
+                  攜伴 +1
+                </label>
+              </div>` : ''}` : ''}
               ${isChosen ? `<div class="companion-label${companionOk ? '' : ' cp-disabled'}"
                   onclick="event.stopPropagation()">
                 <label style="display:flex;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
